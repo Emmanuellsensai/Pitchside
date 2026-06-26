@@ -85,6 +85,7 @@ Routes:
 ```
 GET /api/stream/scores              SSE relay of the upstream scores stream
 GET /api/scores/historical/{id}     JSON proxy of one fixture's history
+GET /api/fixtures/snapshot          JSON proxy of the fixtures list (team names)
 GET /  and static                   serves ../web, frontend at root
 ```
 
