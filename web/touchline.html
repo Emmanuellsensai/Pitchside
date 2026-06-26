@@ -410,28 +410,105 @@ function connectDemo(bus, fixture){
      base 1/2 goals (home/away), 7/8 corners (home/away).
    Participant 1 is home, participant 2 is away.
 
-   The live payload field names beyond seq, ts, and gameState are not fully
-   documented, so the first update is logged to the console (confirm the stat
-   array location and field names there, then tighten the accessors below). */
+   Confirmed against the real devnet feed: each update carries Stats as an object
+   map keyed by the stat key with plain number values (not an array), and the
+   top-level fields are PascalCase (Stats, GameState, Seq, Ts). The feed also
+   carries per-period counters alongside the period 0 match total, but tracking
+   the running max per side (below) lands on the match total either way. */
 const REPLAY_DELAY = 700; // ms between historical updates, paced like a live feed
 
 function makeScoreParser(fixture){
   const prev = { goalsH:0, goalsA:0, cornersH:0, cornersA:0 };
-  let lastMinute = 0, lastPhase = 2, logged = false;
+  let lastMinute = 0, logged = false;
+  // Phase clock state, advanced from the feed as events stream through in order.
+  // phase ids: 1 not started, 2 first half, 3 half time, 4 second half, 5 full
+  // time. halfStartTs/halfBaseMin anchor the match minute to the current half so
+  // the clock pauses across the interval instead of running on wall time.
+  let phase = 1, startTime = null, halfStartTs = null, halfBaseMin = 0;
 
-  function statArray(upd){
-    if (Array.isArray(upd.stats)) return upd.stats;
-    if (Array.isArray(upd.statistics)) return upd.statistics;
-    if (Array.isArray(upd.scores)) return upd.scores;
-    if (upd.data && Array.isArray(upd.data.stats)) return upd.data.stats;
-    if (Array.isArray(upd.data)) return upd.data;
-    return [];
+  // Yield [key, value] pairs from an update. The live and historical feeds send
+  // Stats as an object map; older array shapes are still accepted as a fallback.
+  function statEntries(upd){
+    const map = upd.Stats ?? upd.stats ?? upd.statistics
+      ?? (upd.data && (upd.data.Stats ?? upd.data.stats));
+    const out = [];
+    if (map && typeof map === "object" && !Array.isArray(map)){
+      for (const k in map){
+        const v = map[k];
+        out.push([k, (v != null && typeof v === "object") ? (v.value ?? v.Value ?? v.v) : v]);
+      }
+      return out;
+    }
+    const arr = Array.isArray(map) ? map
+      : Array.isArray(upd.scores) ? upd.scores
+      : Array.isArray(upd.data) ? upd.data : [];
+    for (const s of arr) out.push([s.key ?? s.statId ?? s.id ?? s.k, s.value ?? s.val ?? s.v]);
+    return out;
   }
-  function minuteOf(upd){
+  // Map an explicit gameState (live feed) to a phase id. Numbers pass through;
+  // strings are matched by token. A pre-match / not-started value returns null so
+  // the Action timeline below drives the phase instead. The historical feed sends
+  // GameState "scheduled" throughout, so in replay this is always null.
+  function mapGameState(gs){
+    if (gs == null) return null;
+    if (typeof gs === "number") return gs;
+    const s = String(gs).trim();
+    if (s !== "" && !Number.isNaN(Number(s))) return Number(s);
+    const t = s.toLowerCase().replace(/[^a-z]/g, "");
+    if (/^(notstarted|scheduled|prematch|pregame|upcoming|standby)$/.test(t)) return null;
+    if (/(firsthalf|1sthalf|1h|firstperiod)/.test(t)) return 2;
+    if (/(halftime|interval|halfbreak|^ht$|^break$)/.test(t)) return 3;
+    if (/(secondhalf|2ndhalf|2h|secondperiod)/.test(t)) return 4;
+    if (/(fulltime|finished|ended|^final$|^ft$|complete)/.test(t)) return 5;
+    if (/(extratime|overtime|^et$)/.test(t)) return 6;
+    if (/(penalt|shootout)/.test(t)) return 7;
+    return null;
+  }
+
+  // Advance the phase clock from this update. Prefer an explicit gameState; else
+  // read the Action timeline (kickoff opens a half, halftime_finalised closes the
+  // first half, game_finalised is full time). Mid-half kickoff restarts after a
+  // stoppage are ignored because the phase is already in play.
+  function advancePhase(upd, ts){
+    const explicit = mapGameState(upd.gameState ?? upd.GameState ?? upd.phase);
+    if (explicit != null){
+      if (explicit === 4 && phase < 4 && ts != null){ halfStartTs = ts; halfBaseMin = 45; }
+      else if (explicit === 2 && phase < 2 && ts != null){ halfStartTs = ts; halfBaseMin = 0; }
+      phase = explicit;
+      return;
+    }
+    const action = upd.Action ?? upd.action;
+    if (action === "kickoff" || action === "kickoff_team"){
+      if (phase <= 1){ phase = 2; halfStartTs = ts; halfBaseMin = 0; }
+      else if (phase === 3){ phase = 4; halfStartTs = ts; halfBaseMin = 45; }
+    } else if (action === "halftime_finalised"){
+      phase = 3;
+    } else if (action === "game_finalised"){
+      phase = 5;
+    }
+  }
+
+  // Match minute. An explicit clock field wins (live feed); otherwise derive it
+  // from the timestamp relative to the current half, clamped so it reads 0 to 45
+  // in the first half, holds at 45 through the interval, and 45 to 90 after.
+  function deriveMinute(upd, ts){
     const m = upd.minute ?? upd.matchMinute ?? upd.min ?? upd.clock;
     if (typeof m === "number") return m;
     if (typeof m === "string"){ const n = parseInt(m, 10); if (!Number.isNaN(n)) return n; }
-    return lastMinute;
+    let mins;
+    if (halfStartTs != null && typeof ts === "number"){
+      mins = halfBaseMin + Math.floor((ts - halfStartTs) / 60000);
+    } else if (typeof ts === "number" && startTime != null){
+      mins = Math.floor((ts - startTime) / 60000);
+    } else {
+      return lastMinute;
+    }
+    if (mins < 0) mins = 0;
+    if (phase <= 2) mins = Math.min(mins, 45);
+    else if (phase === 3) mins = 45;
+    else if (phase === 4) mins = Math.min(Math.max(mins, 45), 90);
+    else if (phase >= 5) mins = 90;
+    return mins;
   }
 
   // Process one update: emit state (and any goal tick), return the sides whose
@@ -440,19 +517,27 @@ function makeScoreParser(fixture){
     if (!logged){ logged = true;
       console.log("[Touchline] first feed payload, confirm stat shape here:", upd); }
 
-    const phase = upd.gameState ?? upd.phase ?? lastPhase;
-    const minute = minuteOf(upd);
+    if (startTime == null){
+      const st = Number(upd.StartTime ?? upd.startTime);
+      if (!Number.isNaN(st) && st > 0) startTime = st;
+    }
+    const ts = Number(upd.Ts ?? upd.ts);
+    const tsVal = Number.isNaN(ts) ? null : ts;
+    advancePhase(upd, tsVal);
+    const minute = deriveMinute(upd, tsVal);
     let goalsH = prev.goalsH, goalsA = prev.goalsA;
     const corners = [];
 
-    for (const s of statArray(upd)){
-      const rawKey = s.key ?? s.statId ?? s.id ?? s.k;
+    for (const [rawKey, rawVal] of statEntries(upd)){
       if (rawKey == null) continue;
-      const value = Number(s.value ?? s.val ?? s.v);
+      const value = Number(rawVal);
       if (Number.isNaN(value)) continue;
       switch (Number(rawKey) % 1000){            // strip the period multiplier
-        case 1: goalsH = value; break;
-        case 2: goalsA = value; break;
+        // The feed carries per-period counters next to the period 0 match total,
+        // so take the running max per stat (not the last value seen) to land on
+        // the total. Goals and corners both accumulate, so the max is correct.
+        case 1: if (value > goalsH) goalsH = value; break;
+        case 2: if (value > goalsA) goalsA = value; break;
         case 7: if (value > prev.cornersH){ prev.cornersH = value; corners.push("home"); } break;
         case 8: if (value > prev.cornersA){ prev.cornersA = value; corners.push("away"); } break;
       }
@@ -462,7 +547,7 @@ function makeScoreParser(fixture){
     if (goalsA > prev.goalsA) bus.emit("tick", { minute, text: "GOAL. " + fixture.away.name + " scores." });
 
     prev.goalsH = goalsH; prev.goalsA = goalsA;
-    lastMinute = minute; lastPhase = phase;
+    lastMinute = minute;
     bus.emit("state", { minute, phase, hScore: goalsH, aScore: goalsA });
     return corners;
   };

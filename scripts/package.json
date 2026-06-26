@@ -4,7 +4,8 @@
   "private": true,
   "description": "One-time devnet handshake that prints the TxLINE API token for Touchline.",
   "scripts": {
-    "subscribe": "ts-node subscribe.ts"
+    "subscribe": "ts-node subscribe.ts",
+    "list-fixtures": "ts-node list-fixtures.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
