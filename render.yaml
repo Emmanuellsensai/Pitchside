@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: pitchside
+    runtime: go
+    rootDir: proxy
+    buildCommand: go build -o app .
+    startCommand: ./app
+    envVars:
+      - key: TXLINE_BASE
+        value: https://txline-dev.txodds.com
+      - key: WEB_DIR
+        value: ../web
+      - key: TXLINE_JWT
+        sync: false
+      - key: TXLINE_API_TOKEN
+        sync: false
