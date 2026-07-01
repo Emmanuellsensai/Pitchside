@@ -1,3 +1,5 @@
+Pitchside is a live match companion for the World Cup. A fan subscribes to a match and gets live alerts on every goal, corner, and card, plus a "bottle watch" when their favourite team blows a lead. Data is the TxLINE scores feed on Solana devnet, streamed through the existing Go proxy. SportyBet-inspired look: dark theme, red primary. Keep all existing data adapters, the SSE parser, the stat encoding, and the event bus untouched. This product spec overrides the older corner-game description.
+
 # Touchline, build brief for Claude Code
 
 Touchline is a live higher-or-lower streak game for the World Cup. The player calls
