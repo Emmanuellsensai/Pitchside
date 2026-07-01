@@ -103,7 +103,3 @@ Open http://localhost:8080 and use the mode switch (demo / replay / live):
           `?fixtureId=<id>` in the URL (otherwise the page asks for one).
 - live:   streams the real-time scores feed through the proxy.
 
-## Security
-
-- `scripts/dev-wallet.json` and any `.env` are gitignored. Never commit them.
-- The API token never reaches the browser. It is only set in the proxy environment.
