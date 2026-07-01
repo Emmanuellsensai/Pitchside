@@ -863,9 +863,24 @@ function connectReplay(bus, fixture, cfg){
 
     const res = await fetch("/api/scores/historical/" + encodeURIComponent(cfg.fixtureId));
     if (!res.ok) throw new Error("Historical failed: " + res.status);
-    const body = await res.json();
-    const updates = Array.isArray(body) ? body
-      : (body.data || body.updates || body.scores || body.history || []);
+    // The historical endpoint returns an SSE stream of "data: {...}" lines (the
+    // same shape the live feed sends), not a JSON array. Read the body as text,
+    // take each data: line, and JSON.parse it into the updates list. A plain JSON
+    // array is still accepted as a fallback in case the endpoint changes back.
+    const text = await res.text();
+    let updates;
+    try {
+      const body = JSON.parse(text);
+      updates = Array.isArray(body) ? body
+        : (body.data || body.updates || body.scores || body.history || []);
+    } catch {
+      updates = [];
+      for (const raw of text.split("\n")){
+        const line = raw.trim();
+        if (!line.startsWith("data:")) continue;
+        try { updates.push(JSON.parse(line.slice(5).trim())); } catch { /* skip non-JSON line */ }
+      }
+    }
     if (!Array.isArray(updates) || updates.length === 0) throw new Error("No history for fixture " + cfg.fixtureId);
 
     let i = 0;
