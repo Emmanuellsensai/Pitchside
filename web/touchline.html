@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Touchline, call the match before it happens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E1317;
+    --ink-2:#141B20;
+    --ink-3:#1B242B;
+    --line:#28333B;
+    --bone:#ECE5D6;
+    --bone-line:#D6CDB8;
+    --ink-on-bone:#20242A;
+    --sodium:#F6A623;
+    --win:#43C463;
+    --loss:#E5544B;
+    --muted:#8A98A3;
+    --text:#F1EEE7;
+
+    --font-display:"Archivo", system-ui, sans-serif;
+    --font-body:"Inter", system-ui, sans-serif;
+    --font-mono:"DM Mono", ui-monospace, monospace;
+
+    --r:14px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--font-body);
+    background:
+      radial-gradient(120% 60% at 50% -10%, #19232b 0%, var(--ink) 55%) fixed,
+      var(--ink);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    min-height:100dvh;
+    display:flex;
+    justify-content:center;
+    padding:18px 16px 40px;
+  }
+
+  .app{
+    width:100%;
+    max-width:440px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  /* Masthead */
+  .mast{display:flex;align-items:baseline;justify-content:space-between}
+  .wordmark{
+    font-family:var(--font-display);
+    font-weight:800;
+    letter-spacing:-0.02em;
+    font-size:22px;
+    line-height:1;
+  }
+  .wordmark .dot{color:var(--sodium)}
+  .tag{font-size:11px;color:var(--muted);letter-spacing:0.02em}
+
+  /* Match bar */
+  .matchbar{
+    background:linear-gradient(180deg,var(--ink-2),#10171c);
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    padding:14px 16px;
+  }
+  .comp{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);
+    margin-bottom:10px;
+  }
+  .live{display:inline-flex;align-items:center;gap:7px;color:var(--text)}
+  .live .pip{
+    width:8px;height:8px;border-radius:50%;background:var(--loss);
+    box-shadow:0 0 0 0 rgba(229,84,75,.6);animation:pulse 1.6s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(229,84,75,.55)}
+    70%{box-shadow:0 0 0 9px rgba(229,84,75,0)}
+    100%{box-shadow:0 0 0 0 rgba(229,84,75,0)}
+  }
+  .score{
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;
+  }
+  .team{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .team.away{align-items:flex-end;text-align:right}
+  .flag{font-size:24px;line-height:1}
+  .tname{
+    font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:-0.01em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;
+  }
+  .line{
+    font-family:var(--font-mono);font-weight:500;font-size:34px;letter-spacing:-0.02em;
+    display:flex;align-items:center;gap:10px;
+  }
+  .clock{
+    text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--muted);
+    margin-top:8px;
+  }
+  .phase{
+    color:var(--sodium);border:1px solid color-mix(in srgb,var(--sodium) 40%, transparent);
+    border-radius:999px;padding:1px 8px;margin-left:6px;font-size:11px;
+  }
+
+  /* Ticker */
+  .ticker{
+    height:30px;overflow:hidden;border:1px solid var(--line);border-radius:10px;
+    background:var(--ink-3);display:flex;align-items:center;padding:0 12px;
+    font-size:12.5px;color:var(--muted);
+  }
+  .ticker .ev{display:flex;align-items:center;gap:8px;animation:slidein .45s ease}
+  .ticker .min{font-family:var(--font-mono);color:var(--text)}
+  @keyframes slidein{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+
+  /* Data mode switch (demo / replay / live) */
+  .modes{
+    display:flex;gap:6px;background:var(--ink-3);border:1px solid var(--line);
+    border-radius:10px;padding:4px;
+  }
+  .mode{
+    flex:1;appearance:none;border:0;background:transparent;color:var(--muted);
+    font-family:var(--font-body);font-weight:600;font-size:12px;letter-spacing:0.02em;
+    padding:7px 8px;border-radius:7px;cursor:pointer;
+    transition:color .12s ease, background .12s ease;
+  }
+  .mode:hover{color:var(--text)}
+  .mode.sel{background:var(--ink-2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+  .mode:focus-visible{outline:3px solid #2b6fff;outline-offset:2px}
+
+  /* Coupon (prediction slip) */
+  .coupon{
+    position:relative;background:var(--bone);color:var(--ink-on-bone);
+    border-radius:var(--r);padding:18px 18px 20px;
+    box-shadow:0 18px 40px -24px rgba(0,0,0,.7);
+  }
+  .coupon::before,.coupon::after{
+    content:"";position:absolute;width:18px;height:18px;border-radius:50%;
+    background:var(--ink);top:50%;transform:translateY(-50%);
+  }
+  .coupon::before{left:-9px}
+  .coupon::after{right:-9px}
+  .ask{
+    font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:-0.01em;
+    text-align:center;margin:2px 0 4px;
+  }
+  .askmeta{
+    text-align:center;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+    color:#7a7264;margin-bottom:16px;
+  }
+  .picks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pick{
+    appearance:none;border:1.5px solid var(--bone-line);background:#F4EFE3;
+    color:var(--ink-on-bone);border-radius:12px;padding:14px 10px;cursor:pointer;
+    font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:-0.01em;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    transition:transform .08s ease, border-color .12s ease, background .12s ease;
+  }
+  .pick .pf{font-size:22px}
+  .pick:hover{border-color:#b9ad92}
+  .pick:active{transform:translateY(1px)}
+  .pick.sel{border-color:var(--sodium);background:#fff;box-shadow:inset 0 0 0 1px var(--sodium)}
+  .pick:disabled{cursor:default;opacity:.55}
+  .pick:focus-visible{outline:3px solid #2b6fff;outline-offset:2px}
+
+  .await{
+    text-align:center;font-family:var(--font-mono);font-size:13px;color:#7a7264;
+    margin-top:14px;min-height:18px;
+  }
+  .await .live{color:var(--ink-on-bone)}
+
+  /* Stamp */
+  .stamp{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;opacity:0;
+  }
+  .stamp span{
+    font-family:var(--font-display);font-weight:800;font-size:40px;letter-spacing:0.04em;
+    border:4px solid currentColor;border-radius:10px;padding:6px 16px;
+    transform:rotate(-11deg) scale(1.4);text-transform:uppercase;
+  }
+  .stamp.show{animation:stampin .5s cubic-bezier(.2,1.3,.5,1) forwards}
+  .stamp.win{color:var(--win)}
+  .stamp.miss{color:var(--loss)}
+  @keyframes stampin{
+    0%{opacity:0;transform:scale(1.6)}
+    60%{opacity:1}
+    100%{opacity:1;transform:scale(1)}
+  }
+  .stamp span{transform-origin:center}
+
+  /* Streak panel */
+  .streakrow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .stat{
+    background:var(--ink-2);border:1px solid var(--line);border-radius:var(--r);
+    padding:14px 16px;
+  }
+  .stat .k{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)}
+  .stat .v{font-family:var(--font-mono);font-size:34px;font-weight:500;line-height:1.1;margin-top:4px}
+  .stat .v.hot{color:var(--sodium)}
+
+  .coupons{
+    display:flex;gap:6px;flex-wrap:wrap;min-height:26px;
+    border:1px dashed var(--line);border-radius:12px;padding:10px;background:#10171c;
+  }
+  .chip{
+    width:24px;height:24px;border-radius:6px;display:grid;place-items:center;
+    font-family:var(--font-mono);font-size:13px;font-weight:500;
+    animation:slidein .35s ease;
+  }
+  .chip.w{background:color-mix(in srgb,var(--win) 18%, transparent);color:var(--win);border:1px solid color-mix(in srgb,var(--win) 45%, transparent)}
+  .chip.l{background:color-mix(in srgb,var(--loss) 16%, transparent);color:var(--loss);border:1px solid color-mix(in srgb,var(--loss) 40%, transparent)}
+  .coupons .empty{color:var(--muted);font-size:12px}
+
+  /* Footer / actions */
+  .actions{display:flex;gap:10px;align-items:center}
+  .btn{
+    appearance:none;border:1px solid var(--line);background:var(--ink-2);color:var(--text);
+    border-radius:12px;padding:12px 14px;font-family:var(--font-body);font-weight:600;font-size:14px;
+    cursor:pointer;flex:1;transition:border-color .12s ease, background .12s ease;
+  }
+  .btn:hover{border-color:#3a4750}
+  .btn.primary{background:var(--sodium);border-color:var(--sodium);color:#1a1304}
+  .btn:focus-visible{outline:3px solid #2b6fff;outline-offset:2px}
+
+  .credit{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:11px;color:var(--muted);padding:2px 2px 0;
+  }
+  .conn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono)}
+  .conn .d{width:7px;height:7px;border-radius:50%;background:var(--sodium)}
+  .conn.live .d{background:var(--win)}
+
+  .toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+    background:#fff;color:#16191d;font-size:13px;font-weight:500;
+    padding:10px 16px;border-radius:999px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);
+    opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important}
+  }
+</style>
+</head>
+<body>
+  <main class="app">
+    <header class="mast">
+      <div class="wordmark">Touch<span class="dot">.</span>line</div>
+      <div class="tag">Call the match before it happens</div>
+    </header>
+
+    <div class="modes" role="tablist" aria-label="Data mode">
+      <button class="mode sel" data-mode="demo" role="tab">Demo</button>
+      <button class="mode" data-mode="replay" role="tab">Replay</button>
+      <button class="mode" data-mode="live" role="tab">Live</button>
+    </div>
+
+    <section class="matchbar" aria-label="Live match">
+      <div class="comp">
+        <span id="compName">World Cup, Group F</span>
+        <span class="live"><span class="pip"></span> Live</span>
+      </div>
+      <div class="score">
+        <div class="team home">
+          <span class="flag" id="hFlag">🇧🇷</span>
+          <span class="tname" id="hName">Brazil</span>
+        </div>
+        <div class="line"><span id="hScore">0</span><span style="color:var(--muted)">:</span><span id="aScore">0</span></div>
+        <div class="team away">
+          <span class="flag" id="aFlag">🇭🇷</span>
+          <span class="tname" id="aName">Croatia</span>
+        </div>
+      </div>
+      <div class="clock"><span id="minute">0</span>'<span class="phase" id="phase">1st half</span></div>
+    </section>
+
+    <div class="ticker" aria-live="polite"><div class="ev" id="tickEv"><span class="min">KO</span><span>Kickoff. Pick the next corner.</span></div></div>
+
+    <section class="coupon" aria-label="Prediction slip">
+      <div class="ask">Who wins the next corner?</div>
+      <div class="askmeta" id="roundLabel">Round 1</div>
+      <div class="picks">
+        <button class="pick" id="pickHome">
+          <span class="pf" id="pfHome">🇧🇷</span><span id="plHome">Brazil</span>
+        </button>
+        <button class="pick" id="pickAway">
+          <span class="pf" id="pfAway">🇭🇷</span><span id="plAway">Croatia</span>
+        </button>
+      </div>
+      <div class="await" id="await">Tap a side to lock your call.</div>
+      <div class="stamp" id="stamp"><span></span></div>
+    </section>
+
+    <section class="streakrow">
+      <div class="stat">
+        <div class="k">Current streak</div>
+        <div class="v" id="streak">0</div>
+      </div>
+      <div class="stat">
+        <div class="k">Best today</div>
+        <div class="v" id="best">0</div>
+      </div>
+    </section>
+
+    <div class="coupons" id="history"><span class="empty">Your calls show up here as you play.</span></div>
+
+    <div class="actions">
+      <button class="btn primary" id="shareBtn">Share streak</button>
+      <button class="btn" id="resetBtn">New match</button>
+    </div>
+
+    <div class="credit">
+      <span class="conn" id="conn"><span class="d"></span><span id="connText">Demo match</span></span>
+      <span>Data by TxLINE</span>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ----------------------------------------------------------------------------
+   DATA ADAPTER
+   The game reads a normalised event stream. Today it runs on a simulated match
+   so the page works with zero setup. The shape matches the TxLINE scores feed,
+   so going live is a single swap: call connectLive() instead of connectDemo().
+
+   TxLINE soccer stat encoding (from the feed docs):
+     stat key = (period * 1000) + base_key
+     base keys: 1/2 goals (P1/P2), 3/4 yellow, 5/6 red, 7/8 corners (P1/P2)
+     game phase ids: 1 NS, 2 H1, 3 HT, 4 H2, 5 F ...
+   Participant 1 = home, Participant 2 = away.
+---------------------------------------------------------------------------- */
+
+const PHASE = { 1:"Not started", 2:"1st half", 3:"Half time", 4:"2nd half", 5:"Full time" };
+
+function makeEmitter(){
+  const map = {};
+  return {
+    on(type, cb){ (map[type] = map[type] || []).push(cb); },
+    emit(type, payload){ (map[type] || []).forEach(cb => cb(payload)); }
+  };
+}
+
+/* --- Demo feed: a believable match the player drives one corner at a time --- */
+function connectDemo(bus, fixture){
+  let minute = 0, phase = 2, hScore = 0, aScore = 0;
+  let corners = { home: 0, away: 0 };
+  let momentum = 0; // negative favours home, positive favours away
+
+  bus.emit("match", fixture);
+  bus.emit("state", { minute, phase, hScore, aScore });
+
+  // Ambient clock and the odd goal or card, so the match breathes while the
+  // corner round waits for the player's pick.
+  const clock = setInterval(() => {
+    if (minute >= 90){ phase = 5; bus.emit("state",{minute,phase,hScore,aScore});
+      bus.emit("tick",{ minute:"FT", text:"Full time. Tap New match to go again." });
+      clearInterval(clock); return; }
+    minute += 1;
+    if (minute === 45){ phase = 3; }
+    else if (minute === 46){ phase = 4; }
+    else { phase = (minute < 45) ? 2 : 4; }
+
+    // occasional goal
+    if (Math.random() < 0.018){
+      const home = Math.random() < 0.5;
+      if (home){ hScore++; momentum -= 1; } else { aScore++; momentum += 1; }
+      const team = home ? fixture.home.name : fixture.away.name;
+      bus.emit("tick", { minute, text: "GOAL. " + team + " scores." });
+    } else if (Math.random() < 0.012){
+      const team = Math.random()<0.5 ? fixture.home.name : fixture.away.name;
+      bus.emit("tick", { minute, text: "Yellow card, " + team + "." });
+    }
+    bus.emit("state", { minute, phase, hScore, aScore });
+  }, 950);
+
+  // The feed resolves a corner only after the player has locked a pick.
+  // This keeps the round fair while the live clock keeps rolling.
+  function deliverNextCorner(){
+    const suspense = 1400 + Math.random()*2600;
+    setTimeout(() => {
+      if (phase === 5) return;
+      // slight home edge, nudged by momentum
+      const pAway = Math.min(0.72, Math.max(0.28, 0.46 + momentum*0.05));
+      const away = Math.random() < pAway;
+      if (away){ corners.away++; momentum += 0.4; } else { corners.home++; momentum -= 0.4; }
+      bus.emit("corner", { side: away ? "away" : "home", minute, corners });
+    }, suspense);
+  }
+
+  return { requestNextCorner: deliverNextCorner, stop(){ clearInterval(clock); } };
+}
+
+/* Both live and replay consume the same TxLINE score updates, so they share one
+   parser. It maps the documented stat encoding into the exact internal events
+   the game already reads, holding the last seen totals so a corner is detected
+   only when base 7 (home) or base 8 (away) increases versus the previous value.
+
+   stat key = (period * 1000) + base, so base = key % 1000.
+     base 1/2 goals (home/away), 7/8 corners (home/away).
+   Participant 1 is home, participant 2 is away.
+
+   The live payload field names beyond seq, ts, and gameState are not fully
+   documented, so the first update is logged to the console (confirm the stat
+   array location and field names there, then tighten the accessors below). */
+const REPLAY_DELAY = 700; // ms between historical updates, paced like a live feed
+
+function makeScoreParser(fixture){
+  const prev = { goalsH:0, goalsA:0, cornersH:0, cornersA:0 };
+  let lastMinute = 0, lastPhase = 2, logged = false;
+
+  function statArray(upd){
+    if (Array.isArray(upd.stats)) return upd.stats;
+    if (Array.isArray(upd.statistics)) return upd.statistics;
+    if (Array.isArray(upd.scores)) return upd.scores;
+    if (upd.data && Array.isArray(upd.data.stats)) return upd.data.stats;
+    if (Array.isArray(upd.data)) return upd.data;
+    return [];
+  }
+  function minuteOf(upd){
+    const m = upd.minute ?? upd.matchMinute ?? upd.min ?? upd.clock;
+    if (typeof m === "number") return m;
+    if (typeof m === "string"){ const n = parseInt(m, 10); if (!Number.isNaN(n)) return n; }
+    return lastMinute;
+  }
+
+  // Process one update: emit state (and any goal tick), return the sides whose
+  // corner total just increased (usually zero or one entry).
+  return function process(upd, bus){
+    if (!logged){ logged = true;
+      console.log("[Touchline] first feed payload, confirm stat shape here:", upd); }
+
+    const phase = upd.gameState ?? upd.phase ?? lastPhase;
+    const minute = minuteOf(upd);
+    let goalsH = prev.goalsH, goalsA = prev.goalsA;
+    const corners = [];
+
+    for (const s of statArray(upd)){
+      const rawKey = s.key ?? s.statId ?? s.id ?? s.k;
+      if (rawKey == null) continue;
+      const value = Number(s.value ?? s.val ?? s.v);
+      if (Number.isNaN(value)) continue;
+      switch (Number(rawKey) % 1000){            // strip the period multiplier
+        case 1: goalsH = value; break;
+        case 2: goalsA = value; break;
+        case 7: if (value > prev.cornersH){ prev.cornersH = value; corners.push("home"); } break;
+        case 8: if (value > prev.cornersA){ prev.cornersA = value; corners.push("away"); } break;
+      }
+    }
+
+    if (goalsH > prev.goalsH) bus.emit("tick", { minute, text: "GOAL. " + fixture.home.name + " scores." });
+    if (goalsA > prev.goalsA) bus.emit("tick", { minute, text: "GOAL. " + fixture.away.name + " scores." });
+
+    prev.goalsH = goalsH; prev.goalsA = goalsA;
+    lastMinute = minute; lastPhase = phase;
+    bus.emit("state", { minute, phase, hScore: goalsH, aScore: goalsA });
+    return corners;
+  };
+}
+
+/* --- Live feed: same-origin SSE relay through the proxy. The token lives only
+   in the proxy, so no credentials are sent from the browser. The handle is
+   returned synchronously while the stream loop runs in the background. --- */
+function connectLive(bus, fixture, cfg){
+  cfg = cfg || {};
+  bus.emit("match", fixture);
+  const process = makeScoreParser(fixture);
+  let armed = false, stopped = false, reader = null;
+
+  async function run(){
+    const res = await fetch("/api/stream/scores", { headers: { "Accept": "text/event-stream" } });
+    if (!res.ok) throw new Error("Stream failed: " + res.status);
+    reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (!stopped){
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream:true });
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      for (const raw of lines){
+        const line = raw.trim();
+        if (!line.startsWith("data:")) continue;
+        let upd; try { upd = JSON.parse(line.slice(5).trim()); } catch { continue; }
+        if (cfg.fixtureId != null && upd.fixtureId != null && String(upd.fixtureId) !== String(cfg.fixtureId)) continue;
+        const corners = process(upd, bus);
+        if (armed && corners.length){ armed = false; bus.emit("corner", { side: corners[0] }); }
+      }
+    }
+  }
+  run().catch(err => {
+    console.error("[Touchline] live stream error:", err);
+    bus.emit("tick", { minute: "!", text: "Live stream unavailable. Check the proxy and token." });
+  });
+
+  return {
+    requestNextCorner(){ armed = true; },
+    stop(){ stopped = true; try { reader && reader.cancel(); } catch(e){} }
+  };
+}
+
+/* --- Replay feed: GET the historical array for one fixture, then replay it in
+   order with a short delay so the game plays exactly as if live. This is what
+   the demo video uses. --- */
+function connectReplay(bus, fixture, cfg){
+  cfg = cfg || {};
+  bus.emit("match", fixture);
+  const process = makeScoreParser(fixture);
+  let armed = false, stopped = false, timer = null;
+
+  async function run(){
+    if (!cfg.fixtureId) throw new Error("replay needs a fixtureId");
+    const res = await fetch("/api/scores/historical/" + encodeURIComponent(cfg.fixtureId));
+    if (!res.ok) throw new Error("Historical failed: " + res.status);
+    const body = await res.json();
+    const updates = Array.isArray(body) ? body
+      : (body.data || body.updates || body.scores || body.history || []);
+    if (!Array.isArray(updates) || updates.length === 0) throw new Error("No history for fixture " + cfg.fixtureId);
+
+    let i = 0;
+    (function step(){
+      if (stopped) return;
+      if (i >= updates.length){ bus.emit("tick", { minute: "FT", text: "Replay finished. Tap New match." }); return; }
+      const corners = process(updates[i++], bus);
+      if (armed && corners.length){ armed = false; bus.emit("corner", { side: corners[0] }); }
+      timer = setTimeout(step, REPLAY_DELAY);
+    })();
+  }
+  run().catch(err => {
+    console.error("[Touchline] replay error:", err);
+    bus.emit("tick", { minute: "!", text: "Replay unavailable for this fixtureId." });
+  });
+
+  return {
+    requestNextCorner(){ armed = true; },
+    stop(){ stopped = true; clearTimeout(timer); }
+  };
+}
+
+/* ----------------------------------------------------------------------------
+   GAME
+---------------------------------------------------------------------------- */
+const FIXTURES = [
+  { compName:"World Cup, Group F", home:{name:"Brazil",flag:"🇧🇷"}, away:{name:"Croatia",flag:"🇭🇷"} },
+  { compName:"World Cup, Group A", home:{name:"Mexico",flag:"🇲🇽"}, away:{name:"Nigeria",flag:"🇳🇬"} },
+  { compName:"World Cup, Group C", home:{name:"Argentina",flag:"🇦🇷"}, away:{name:"Japan",flag:"🇯🇵"} },
+  { compName:"World Cup, Round of 16", home:{name:"France",flag:"🇫🇷"}, away:{name:"Morocco",flag:"🇲🇦"} }
+];
+
+const $ = id => document.getElementById(id);
+const els = {
+  comp:$("compName"), hName:$("hName"), aName:$("aName"), hFlag:$("hFlag"), aFlag:$("aFlag"),
+  hScore:$("hScore"), aScore:$("aScore"), minute:$("minute"), phase:$("phase"),
+  tickEv:$("tickEv"),
+  pickHome:$("pickHome"), pickAway:$("pickAway"), pfHome:$("pfHome"), pfAway:$("pfAway"),
+  plHome:$("plHome"), plAway:$("plAway"), await:$("await"), stamp:$("stamp"),
+  roundLabel:$("roundLabel"), streak:$("streak"), best:$("best"), history:$("history"),
+  shareBtn:$("shareBtn"), resetBtn:$("resetBtn"), conn:$("conn"), connText:$("connText"),
+  toast:$("toast")
+};
+
+let game = null;
+
+/* Data mode. Demo is the offline default and needs no proxy. Replay and live
+   talk to the same-origin proxy. A fixtureId for replay can be passed as a URL
+   query (?fixtureId=12345) or on a fixture object, otherwise we ask for one. */
+const MODE_LABEL = { demo:"Demo match", replay:"Replay", live:"Live" };
+let currentMode = "demo";
+let replayFixtureId = new URLSearchParams(location.search).get("fixtureId") || null;
+
+function makeFeed(bus, fixture){
+  els.conn.classList.toggle("live", currentMode === "live");
+  els.connText.textContent = MODE_LABEL[currentMode];
+
+  if (currentMode === "live"){
+    return connectLive(bus, fixture, { fixtureId: replayFixtureId || fixture.fixtureId });
+  }
+  if (currentMode === "replay"){
+    const id = replayFixtureId || fixture.fixtureId || promptFixtureId();
+    if (!id){
+      toast("Replay needs a fixtureId");
+      currentMode = "demo"; syncModeButtons();
+      els.conn.classList.remove("live"); els.connText.textContent = MODE_LABEL.demo;
+      return connectDemo(bus, fixture);
+    }
+    return connectReplay(bus, fixture, { fixtureId: id });
+  }
+  return connectDemo(bus, fixture);
+}
+
+function promptFixtureId(){
+  const id = window.prompt("Enter a TxLINE fixtureId to replay");
+  if (id && id.trim()) replayFixtureId = id.trim();
+  return replayFixtureId;
+}
+
+function syncModeButtons(){
+  document.querySelectorAll(".mode").forEach(b => b.classList.toggle("sel", b.dataset.mode === currentMode));
+}
+
+function startMatch(fixture){
+  if (game && game.feed) game.feed.stop();
+
+  game = {
+    fixture,
+    bus: makeEmitter(),
+    streak: 0,
+    best: game ? game.best : 0,
+    round: 0,
+    locked: null,        // "home" | "away"
+    resolving: false,
+    history: [],
+    feed: null
+  };
+
+  // paint shell
+  els.comp.textContent = fixture.compName;
+  els.hName.textContent = fixture.home.name; els.aName.textContent = fixture.away.name;
+  els.hFlag.textContent = fixture.home.flag; els.aFlag.textContent = fixture.away.flag;
+  els.pfHome.textContent = fixture.home.flag; els.pfAway.textContent = fixture.away.flag;
+  els.plHome.textContent = fixture.home.name; els.plAway.textContent = fixture.away.name;
+  els.hScore.textContent = "0"; els.aScore.textContent = "0";
+  els.streak.textContent = "0"; els.streak.classList.remove("hot");
+  els.best.textContent = game.best;
+  els.history.innerHTML = '<span class="empty">Your calls show up here as you play.</span>';
+  setTick("KO", "Kickoff. Pick the next corner.");
+
+  const bus = game.bus;
+  bus.on("state", s => {
+    els.hScore.textContent = s.hScore;
+    els.aScore.textContent = s.aScore;
+    els.minute.textContent = (s.phase === 5) ? "90" : s.minute;
+    els.phase.textContent = PHASE[s.phase] || "Live";
+  });
+  bus.on("tick", t => setTick(t.minute, t.text));
+  bus.on("corner", resolveCorner);
+
+  // Feed is chosen by the current data mode (demo / replay / live).
+  game.feed = makeFeed(bus, fixture);
+
+  openRound();
+}
+
+function setTick(min, text){
+  const ev = document.createElement("div");
+  ev.className = "ev";
+  ev.innerHTML = '<span class="min">' + min + (min==="KO"||min==="FT" ? "" : "'") + '</span><span>' + text + '</span>';
+  els.tickEv.replaceWith(ev);
+  ev.id = "tickEv";
+  els.tickEv = ev;
+}
+
+function openRound(){
+  game.round += 1;
+  game.locked = null;
+  game.resolving = false;
+  els.roundLabel.textContent = "Round " + game.round;
+  els.pickHome.classList.remove("sel"); els.pickAway.classList.remove("sel");
+  els.pickHome.disabled = false; els.pickAway.disabled = false;
+  els.await.innerHTML = "Tap a side to lock your call.";
+}
+
+function lockPick(side){
+  if (game.locked || game.resolving) return;
+  game.locked = side;
+  (side === "home" ? els.pickHome : els.pickAway).classList.add("sel");
+  els.pickHome.disabled = true; els.pickAway.disabled = true;
+  els.await.innerHTML = '<span class="live">Locked. Waiting for the next corner…</span>';
+  game.resolving = true;
+  game.feed.requestNextCorner();
+}
+
+function resolveCorner(payload){
+  if (!game.resolving) return;
+  const won = (payload.side === game.locked);
+
+  if (won){
+    game.streak += 1;
+    if (game.streak > game.best){ game.best = game.streak; els.best.textContent = game.best; }
+  } else {
+    game.streak = 0;
+  }
+  els.streak.textContent = game.streak;
+  els.streak.classList.toggle("hot", game.streak >= 3);
+
+  // history chip
+  if (game.history.length === 0) els.history.innerHTML = "";
+  const chip = document.createElement("span");
+  chip.className = "chip " + (won ? "w" : "l");
+  chip.textContent = won ? "✓" : "✗";
+  els.history.appendChild(chip);
+  game.history.push(won);
+
+  // stamp
+  showStamp(won);
+  const took = payload.side === "home" ? game.fixture.home.name : game.fixture.away.name;
+  els.await.innerHTML = won
+    ? '<span class="live">Called it. ' + took + ' took the corner.</span>'
+    : took + " took it. Streak reset.";
+
+  game.resolving = false;
+  setTimeout(openRound, 1500);
+}
+
+function showStamp(won){
+  const s = els.stamp;
+  s.className = "stamp " + (won ? "win" : "miss");
+  s.querySelector("span").textContent = won ? "Called it" : "Missed";
+  // reflow to restart animation
+  void s.offsetWidth;
+  s.classList.add("show");
+  setTimeout(() => s.classList.remove("show"), 1300);
+}
+
+function toast(msg){
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  setTimeout(() => els.toast.classList.remove("show"), 1900);
+}
+
+/* events */
+els.pickHome.addEventListener("click", () => lockPick("home"));
+els.pickAway.addEventListener("click", () => lockPick("away"));
+document.querySelectorAll(".mode").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.mode === currentMode) return;
+    currentMode = btn.dataset.mode;
+    syncModeButtons();
+    startMatch(game.fixture);
+  });
+});
+els.resetBtn.addEventListener("click", () => {
+  const next = FIXTURES[(FIXTURES.indexOf(game.fixture) + 1) % FIXTURES.length];
+  startMatch(next);
+});
+els.shareBtn.addEventListener("click", async () => {
+  const wins = game.history.filter(Boolean).length;
+  const text = "I'm on a " + game.streak + " streak (best " + game.best + ") calling corners on Touchline, "
+    + game.fixture.home.name + " v " + game.fixture.away.name + ". " + wins + "/" + game.history.length + " right.";
+  try {
+    if (navigator.share){ await navigator.share({ text }); }
+    else { await navigator.clipboard.writeText(text); toast("Streak copied to clipboard"); }
+  } catch(e){ toast("Streak copied"); }
+});
+
+/* boot */
+syncModeButtons();
+startMatch(FIXTURES[0]);
+</script>
+</body>
+</html>

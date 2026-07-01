@@ -1,0 +1,19 @@
+# Wallet keypairs and secrets, never commit these
+scripts/dev-wallet.json
+*.json.key
+*-keypair.json
+
+# Env files holding the JWT and API token
+.env
+.env.*
+*.env
+# but keep the committed template
+!.env.example
+!*.env.example
+
+# Node
+node_modules/
+
+# Go
+proxy/proxy
+proxy/touchline-proxy
