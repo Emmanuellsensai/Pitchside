@@ -189,6 +189,32 @@
       margin-bottom: 12px;
     }
 
+    .compinfo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    /* Fixture date, sits beside the competition label. Its calendar glyph and text pick
+       up the same muted uppercase treatment as the rest of the comprow. */
+    .matchdate {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--muted);
+      white-space: nowrap;
+      padding-left: 8px;
+      border-left: 1px solid var(--line);
+    }
+
+    .matchdate svg {
+      width: 12px;
+      height: 12px;
+      display: block;
+      flex: none;
+    }
+
     .livechip {
       display: inline-flex;
       align-items: center;
@@ -2331,7 +2357,18 @@
 
           <section class="matchcard" aria-label="Match">
         <div class="comprow">
-          <span id="compName">World Cup</span>
+          <span class="compinfo">
+            <span id="compName">World Cup</span>
+            <span class="matchdate" id="matchDate" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <line x1="3.5" y1="9" x2="20.5" y2="9" stroke="currentColor" stroke-width="1.6" />
+                <line x1="8" y1="3" x2="8" y2="6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                <line x1="16" y1="3" x2="16" y2="6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              <span class="md-txt" id="matchDateTxt"></span>
+            </span>
+          </span>
           <span class="livechip" id="liveChip"><span class="pip"></span><span id="liveText">LIVE</span></span>
         </div>
         <div class="score">
@@ -2943,7 +2980,8 @@
 
     const $ = id => document.getElementById(id);
     const els = {
-      comp: $("compName"), liveChip: $("liveChip"), liveText: $("liveText"),
+      comp: $("compName"), matchDate: $("matchDate"), matchDateTxt: $("matchDateTxt"),
+      liveChip: $("liveChip"), liveText: $("liveText"),
       hName: $("hName"), aName: $("aName"), hScore: $("hScore"), aScore: $("aScore"),
       minute: $("minute"), phase: $("phase"),
       pitch: $("pitch"), ball: $("ball"), flash: $("flash"), goalWord: $("goalWord"),
@@ -3027,9 +3065,25 @@
       return clean.slice(0, 3).toUpperCase();
     }
 
+    // Format a kickoff timestamp as a short day-and-date, e.g. "Fri 26 Jun". Returns
+    // an empty string when there is no kickoff time, so the caller can hide the label.
+    function matchDateLabel(ms) {
+      if (!ms) return "";
+      const d = new Date(ms);
+      const wd = d.toLocaleDateString(undefined, { weekday: "short" });
+      const day = d.toLocaleDateString(undefined, { day: "numeric" });
+      const mon = d.toLocaleDateString(undefined, { month: "short" });
+      return wd + " " + day + " " + mon;
+    }
+
     // Paint team names and competition. Called on every match and on replay relabel.
     function renderTeams(fixture) {
       els.comp.textContent = fixture.compName;
+      if (els.matchDate) {
+        const dl = matchDateLabel(fixture.kickoff);
+        els.matchDateTxt.textContent = dl;
+        els.matchDate.hidden = !dl;   // hide rather than show a blank when unavailable
+      }
       els.hName.textContent = fixture.home.name;
       els.aName.textContent = fixture.away.name;
       els.favHomeName.textContent = fixture.home.name;
@@ -4095,6 +4149,7 @@
         compName: f.competition || "World Cup",
         home: { name: f.home || "Home" },
         away: { name: f.away || "Away" },
+        kickoff: f.kickoff,
         fixtureId: f.id
       };
       currentMode = (f.status === "live") ? "live" : "replay";
