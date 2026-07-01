@@ -263,6 +263,54 @@
   .card-rect.yellow{background:var(--yellow)}
   .card-rect.red{background:var(--red)}
 
+  /* Mute alerts toggle */
+  .mutebtn{
+    appearance:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    border:1px solid color-mix(in srgb,var(--brand) 55%, transparent);background:transparent;
+    color:var(--text);font-family:var(--font-body);font-weight:600;font-size:12px;
+    border-radius:999px;padding:5px 11px;transition:background .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .mutebtn svg{width:14px;height:14px;display:block}
+  .mutebtn:hover{background:color-mix(in srgb,var(--brand) 12%, transparent)}
+  .mutebtn.muted{border-color:var(--line);color:var(--muted);background:transparent}
+  .mutebtn.muted:hover{border-color:#3a4651;color:var(--text)}
+  .mutebtn:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
+
+  /* Momentum meter */
+  .momentum{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:11px 14px 13px;
+  }
+  .momentum .mhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .momentum .mhead .mt{
+    text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:0.08em;font-size:10.5px;
+  }
+  .momentum .mhead .ml,.momentum .mhead .mr{
+    font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--text);
+    max-width:38%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .momentum .mhead .mr{text-align:right}
+  .mometer{display:block;width:100%;height:14px}
+  .mometer .motrack{fill:var(--surface-3)}
+  .mometer .mofill.home{fill:var(--brand)}
+  .mometer .mofill.away{fill:#C9D0D7}
+  .mometer .mocenter{stroke:var(--muted);stroke-width:.6;opacity:.65}
+  .mometer .moknob{fill:#fff;stroke:var(--brand);stroke-width:1.1}
+  .mometer rect,.mometer circle{transition:x .5s cubic-bezier(.4,0,.2,1),width .5s cubic-bezier(.4,0,.2,1),cx .5s cubic-bezier(.4,0,.2,1)}
+
+  /* Bottle risk meter */
+  .bottlerisk{margin-top:14px}
+  .bottlerisk .brhead{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:11px;color:var(--muted);margin-bottom:6px;font-family:var(--font-mono);
+    text-transform:uppercase;letter-spacing:0.05em;
+  }
+  .bottlerisk .brpct{color:var(--text);font-weight:600;letter-spacing:0}
+  .brmeter{display:block;width:100%;height:9px}
+  .brmeter .brtrack{fill:var(--surface-3)}
+  .brmeter .brfill{fill:var(--brand)}
+  .brmeter rect{transition:width .5s ease,fill .5s ease}
+
   /* Fan Zone */
   .fanzone h2 .fz-conn{
     margin-left:auto;font-family:var(--font-mono);font-size:10.5px;font-weight:400;
@@ -403,6 +451,21 @@
       <div class="clockrow"><span id="minute">0</span>'<span class="phase" id="phase">Not started</span></div>
     </section>
 
+    <section class="momentum" aria-label="Momentum meter">
+      <div class="mhead">
+        <span class="ml" id="moHome">Home</span>
+        <span class="mt">Momentum</span>
+        <span class="mr" id="moAway">Away</span>
+      </div>
+      <svg class="mometer" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
+        <rect class="motrack" x="0" y="5" width="100" height="4" rx="2"/>
+        <rect class="mofill home" id="moFillHome" x="50" y="4" width="0" height="6" rx="2"/>
+        <rect class="mofill away" id="moFillAway" x="50" y="4" width="0" height="6" rx="2"/>
+        <line class="mocenter" x1="50" y1="2" x2="50" y2="12"/>
+        <circle class="moknob" id="moKnob" cx="50" cy="7" r="2.6"/>
+      </svg>
+    </section>
+
     <div class="pitchwrap">
       <div class="pitch" id="pitch">
         <svg class="lines" viewBox="0 0 100 64" preserveAspectRatio="none" aria-hidden="true">
@@ -449,6 +512,13 @@
         <button class="fav away" id="favAway"><span class="dot"></span><span id="favAwayName">Away</span></button>
       </div>
       <div class="bottlestatus" id="bottleStatus">No team selected.</div>
+      <div class="bottlerisk" id="bottleRiskBox">
+        <div class="brhead"><span>Bottle risk</span><span class="brpct" id="brPct">0%</span></div>
+        <svg class="brmeter" viewBox="0 0 100 9" preserveAspectRatio="none" aria-hidden="true">
+          <rect class="brtrack" x="0" y="1.5" width="100" height="6" rx="3"/>
+          <rect class="brfill" id="brFill" x="0" y="1.5" width="0" height="6" rx="3"/>
+        </svg>
+      </div>
       <div class="bottlebanner" id="bottleBanner">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 L22 20 H2 Z" fill="none" stroke="var(--brand)" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="14" stroke="var(--brand)" stroke-width="1.8"/><circle cx="12" cy="17" r="1" fill="var(--brand)"/></svg>
         <span class="txt" id="bottleBannerText"></span>
@@ -459,6 +529,10 @@
       <span class="t">Live alerts</span>
       <span class="feedright">
         <span class="c" id="feedCount">0 events</span>
+        <button class="mutebtn" id="muteBtn" type="button" aria-pressed="false" aria-label="Mute match alerts">
+          <span id="muteIcon"></span>
+          <span id="muteBtnText">Alerts on</span>
+        </button>
         <button class="subbtn" id="subBtn" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
           <span id="subBtnText">Notify me</span>
@@ -927,6 +1001,10 @@ const els = {
   bottleStatus:$("bottleStatus"), bottleBanner:$("bottleBanner"), bottleBannerText:$("bottleBannerText"),
   feed:$("feed"), feedCount:$("feedCount"),
   subBtn:$("subBtn"), subBtnText:$("subBtnText"),
+  muteBtn:$("muteBtn"), muteBtnText:$("muteBtnText"), muteIcon:$("muteIcon"),
+  moHome:$("moHome"), moAway:$("moAway"),
+  moFillHome:$("moFillHome"), moFillAway:$("moFillAway"), moKnob:$("moKnob"),
+  brFill:$("brFill"), brPct:$("brPct"),
   conn:$("conn"), connText:$("connText"), toast:$("toast")
 };
 
@@ -935,10 +1013,13 @@ const ICONS = {
   ball: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#0A0D10" stroke-width="1.2"/><path d="M12 6 L15 8.4 L13.8 12 L10.2 12 L9 8.4 Z" fill="#0A0D10"/></svg>',
   flag: '<svg viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="21" stroke="#fff" stroke-width="1.8"/><path d="M6 4 L18 7 L6 11 Z" fill="var(--brand)"/></svg>',
   bottle: '<svg viewBox="0 0 24 24"><path d="M12 3 L22 20 H2 Z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="14" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="17" r="1.1" fill="#fff"/></svg>',
-  cardRect: kind => '<span class="card-rect ' + kind + '"></span>'
+  cardRect: kind => '<span class="card-rect ' + kind + '"></span>',
+  bellOn: '<svg viewBox="0 0 24 24"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  bellOff: '<svg viewBox="0 0 24 24"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="1.9"/></svg>'
 };
 
 let game = null;
+let alertsMuted = false;   // match alerts default to on
 
 const MODE_LABEL = { demo:"Demo match", replay:"Replay", live:"Live" };
 let currentMode = "demo";
@@ -981,6 +1062,8 @@ function renderTeams(fixture){
   els.aName.textContent = fixture.away.name;
   els.favHomeName.textContent = fixture.home.name;
   els.favAwayName.textContent = fixture.away.name;
+  els.moHome.textContent = fixture.home.name;
+  els.moAway.textContent = fixture.away.name;
   fzRenderTeams(fixture);
 }
 
@@ -1003,6 +1086,7 @@ function startMatch(fixture){
   setClock(0, 1);
   clearFeed();
   resetPitch();
+  resetPressure();
   syncFavButtons();
   els.bottleBanner.classList.remove("show");
   updateBottleStatus();
@@ -1117,7 +1201,8 @@ function onGoal(side, minute){
     setTimeout(() => els.ball.classList.add("idle"), 650);
   }, 1100);
 
-  addAlert("goal", minute, "Goal", teamName(side), side);
+  nudgeMomentum(side, 0.55);
+  addAlert("goal", minute, teamName(side) + " goal", "", side);
 }
 
 function onCorner(side, minute){
@@ -1145,15 +1230,24 @@ function onCorner(side, minute){
     setTimeout(() => els.ball.classList.add("idle"), 650);
   }, 1600);
 
-  addAlert("corner", minute, "Corner", teamName(side), side);
+  nudgeMomentum(side, 0.22);
+  if (game.fav && side !== game.fav && favDiff(game.hScore, game.aScore) >= 1){
+    bottleRisk = Math.min(1, bottleRisk + 0.06); renderBottleRisk();
+  }
+  addAlert("corner", minute, teamName(side) + " corner", "", side);
 }
 
 function onCard(side, kind, minute){
   els.pitchCard.className = "pitchcard " + side + " " + kind;
   void els.pitchCard.offsetWidth; els.pitchCard.classList.add("show");
   setTimeout(() => els.pitchCard.classList.remove("show"), 1600);
-  const label = (kind === "red" ? "Red card" : "Yellow card");
-  addAlert("card", minute, label, teamName(side), side, kind);
+  // A card hurts the carded side, so momentum shifts to the opponent.
+  nudgeMomentum(side === "home" ? "away" : "home", kind === "red" ? 0.3 : 0.15);
+  if (game.fav && side === game.fav && favDiff(game.hScore, game.aScore) >= 1){
+    bottleRisk = Math.min(1, bottleRisk + (kind === "red" ? 0.15 : 0.08)); renderBottleRisk();
+  }
+  const label = (kind === "red" ? "red card" : "yellow card");
+  addAlert("card", minute, teamName(side) + " " + label, "", side, kind);
 }
 
 /* --- Live alert feed --- */
@@ -1168,7 +1262,8 @@ function fmtMinute(m){
   if (/^\d+$/.test(String(m))) return m + "'";
   return String(m);
 }
-function addAlert(type, minute, label, team, side, kind){
+function addAlert(type, minute, label, meta, side, kind){
+  if (alertsMuted) return;          // match alerts muted, skip the feed
   const empty = els.feed.querySelector(".empty");
   if (empty) empty.remove();
 
@@ -1184,7 +1279,7 @@ function addAlert(type, minute, label, team, side, kind){
   row.innerHTML =
     '<span class="ic">' + icon + '</span>' +
     '<span class="body"><span class="lab">' + label + '</span>' +
-    '<span class="meta">' + (team || "") + '</span></span>' +
+    (meta ? '<span class="meta">' + meta + '</span>' : '') + '</span>' +
     '<span class="min">' + fmtMinute(minute) + '</span>';
 
   els.feed.insertBefore(row, els.feed.firstChild);
@@ -1198,11 +1293,13 @@ function addAlert(type, minute, label, team, side, kind){
 function selectFav(side){
   game.fav = side;
   game.bottle = { wasLeading:false, bottled:false };
+  bottleRisk = 0; favLeadSeen = 0; prevFavDiff = null;
   els.bottleBanner.classList.remove("show");
   syncFavButtons();
   // Seed the lead state from the current score so an existing lead counts.
   evaluateBottle(game.hScore, game.aScore, null, true);
   updateBottleStatus();
+  renderBottleRisk();
   // Keep any push subscription pointed at the new favourite for bottle alerts.
   if (pushState.sub) postSubscription(pushState.sub).catch(() => {});
 }
@@ -1226,6 +1323,7 @@ function evaluateBottle(h, a, minute, silent){
     game.bottle.bottled = true;
     if (!silent) raiseBottle(minute, diff);
   }
+  updateBottleRisk(diff);
   updateBottleStatus(diff);
 }
 function raiseBottle(minute, diff){
@@ -1255,6 +1353,87 @@ function toast(msg){
   els.toast.classList.add("show");
   setTimeout(() => els.toast.classList.remove("show"), 2200);
 }
+
+/* ----------------------------------------------------------------------------
+   MOMENTUM AND BOTTLE RISK (SVG meters, driven only by bus events)
+   The momentum meter leans toward whichever side just scored or won a corner and
+   decays back to centre when play goes quiet. The bottle risk meter climbs when
+   the favourite has held a lead and then concedes or gets pegged back, and eases
+   down otherwise. Both reset with each new match.
+---------------------------------------------------------------------------- */
+let momentum = 0;     // -1 full home pressure .. +1 full away pressure
+let bottleRisk = 0;   // 0 .. 1 chance the favourite bottles the lead
+let favLeadSeen = 0;  // largest favourite lead held so far this match
+let prevFavDiff = null;
+
+function resetPressure(){
+  momentum = 0; bottleRisk = 0; favLeadSeen = 0; prevFavDiff = null;
+  renderMomentum(); renderBottleRisk();
+}
+
+function nudgeMomentum(side, amount){
+  momentum += (side === "home" ? -amount : amount);
+  momentum = Math.max(-1, Math.min(1, momentum));
+  renderMomentum();
+}
+
+function renderMomentum(){
+  const mag = Math.min(1, Math.abs(momentum)) * 50;
+  if (momentum < 0){
+    els.moFillHome.setAttribute("x", 50 - mag);
+    els.moFillHome.setAttribute("width", mag);
+    els.moFillAway.setAttribute("width", 0);
+  } else {
+    els.moFillAway.setAttribute("x", 50);
+    els.moFillAway.setAttribute("width", mag);
+    els.moFillHome.setAttribute("width", 0);
+  }
+  els.moKnob.setAttribute("cx", 50 + momentum * 50);
+}
+
+// Update the favourite's bottle risk from a fresh score difference. A drop from a
+// previously held lead pushes risk up, regaining ground eases it back down.
+function updateBottleRisk(diff){
+  if (diff > favLeadSeen) favLeadSeen = diff;
+  if (prevFavDiff == null){ prevFavDiff = diff; renderBottleRisk(); return; }
+  if (favLeadSeen >= 1 && diff < prevFavDiff){
+    bottleRisk += 0.45 * (prevFavDiff - diff);
+  } else if (diff > prevFavDiff){
+    bottleRisk *= 0.4;
+  }
+  bottleRisk = Math.max(0, Math.min(1, bottleRisk));
+  prevFavDiff = diff;
+  renderBottleRisk();
+}
+
+function renderBottleRisk(){
+  const r = Math.max(0, Math.min(1, bottleRisk));
+  els.brFill.setAttribute("width", Math.round(r * 100));
+  // Warm the fill toward full red as the risk climbs.
+  els.brFill.style.fill = "color-mix(in srgb, var(--brand) " + Math.round(40 + r * 60) + "%, var(--muted))";
+  els.brPct.textContent = Math.round(r * 100) + "%";
+}
+
+// Slow drift back to a calm state. Momentum sinks to centre, risk eases down.
+setInterval(() => {
+  if (!game) return;
+  momentum *= 0.9; if (Math.abs(momentum) < 0.01) momentum = 0;
+  bottleRisk *= 0.985; if (bottleRisk < 0.005) bottleRisk = 0;
+  renderMomentum(); renderBottleRisk();
+}, 700);
+
+/* --- Mute toggle for the match alert feed --- */
+function syncMuteButton(){
+  els.muteBtn.classList.toggle("muted", alertsMuted);
+  els.muteBtn.setAttribute("aria-pressed", String(alertsMuted));
+  els.muteBtnText.textContent = alertsMuted ? "Alerts off" : "Alerts on";
+  els.muteIcon.innerHTML = alertsMuted ? ICONS.bellOff : ICONS.bellOn;
+}
+els.muteBtn.addEventListener("click", () => {
+  alertsMuted = !alertsMuted;
+  syncMuteButton();
+  toast(alertsMuted ? "Match alerts muted" : "Match alerts on");
+});
 
 /* events */
 els.favHome.addEventListener("click", () => selectFav("home"));
@@ -1596,6 +1775,7 @@ document.querySelectorAll(".fz-pick").forEach(btn => {
 
 /* boot */
 syncModeButtons();
+syncMuteButton();
 startMatch(FIXTURES[0]);
 registerServiceWorker();
 if (fzState.name) fz.nameInput.value = fzState.name;
