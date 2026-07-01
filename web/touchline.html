@@ -1106,6 +1106,13 @@
       transition: width .5s ease, fill .5s ease
     }
 
+    /* The hidden attribute must always win, even over the display rules below.
+       Without this, elements like #matchView and .demonote set their own display
+       and stay visible despite hidden being toggled in JS. */
+    [hidden] {
+      display: none !important;
+    }
+
     /* Matches screen */
     #matchView {
       display: flex;
@@ -1113,24 +1120,29 @@
       gap: 12px
     }
 
-    /* Match layout: a sticky match panel (pitch, score, clock) and the scrolling
-       content underneath it. On mobile the panel pins to the top of the viewport,
-       on desktop it sits fixed in a left column beside the scrolling content. */
+    /* Match layout: a match panel (pitch, score, clock) and the scrolling content
+       underneath it. On mobile only the score and clock banner pins to the top and the
+       pitch scrolls with the page; on desktop the whole panel becomes a sticky left
+       column beside the scrolling content, which gets the larger, more balanced share. */
     .matchlayout {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
+    /* On mobile the panel scrolls with the page (pitch included). Only the score and
+       clock banner inside it pins to the top, see .matchcard below. On desktop the
+       whole panel becomes a sticky side column, see the min-width: 780px block. */
     .matchpanel {
-      position: sticky;
-      top: 0;
-      z-index: 8;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      background: var(--bg);
-      padding-bottom: 10px;
+    }
+
+    .matchcard {
+      position: sticky;
+      top: 0;
+      z-index: 8;
     }
 
     .matchscroll {
@@ -1141,6 +1153,10 @@
     }
 
     /* Search and match picker */
+    .searchwrap {
+      position: relative;
+    }
+
     .searchbar {
       display: flex;
       align-items: center;
@@ -1149,6 +1165,57 @@
       border: 1.5px solid var(--line);
       border-radius: 12px;
       padding: 0 11px;
+    }
+
+    /* Team-name suggestions, derived live from the fixtures snapshot. */
+    .suggest {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      z-index: 30;
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      padding: 5px;
+      max-height: 280px;
+      overflow-y: auto;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, .45);
+    }
+
+    .suggest-item {
+      appearance: none;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .suggest-item:hover,
+    .suggest-item.active {
+      background: color-mix(in srgb, var(--brand) 16%, var(--surface));
+    }
+
+    .suggest-item .si-icon {
+      width: 15px;
+      height: 15px;
+      flex: none;
+      color: var(--muted);
+    }
+
+    .suggest-item .si-icon svg {
+      width: 15px;
+      height: 15px;
+      display: block;
     }
 
     .searchbar:focus-within {
@@ -1422,6 +1489,88 @@
       font-size: 13px;
       text-align: center;
       padding: 26px 10px
+    }
+
+    /* Friendly empty state when no fixtures fall in the current data window. */
+    .emptystate {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      padding: 40px 18px;
+    }
+
+    .emptystate .es-icon {
+      width: 46px;
+      height: 46px;
+      color: var(--muted);
+      opacity: .85;
+    }
+
+    .emptystate .es-icon svg {
+      width: 46px;
+      height: 46px;
+      display: block;
+    }
+
+    .emptystate .es-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .emptystate .es-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+      max-width: 360px;
+    }
+
+    .emptystate .es-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 4px;
+    }
+
+    .emptystate .es-btn {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 12.5px;
+      border-radius: 999px;
+      padding: 8px 14px;
+      transition: border-color .12s ease, background .12s ease;
+    }
+
+    .emptystate .es-btn.primary {
+      border-color: transparent;
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .emptystate .es-btn:hover {
+      border-color: #3a4651;
+    }
+
+    .emptystate .es-btn.primary:hover {
+      background: var(--brand-press);
+      border-color: transparent;
+    }
+
+    .emptystate .es-btn svg {
+      width: 15px;
+      height: 15px;
     }
 
     /* Back to matches */
@@ -1981,15 +2130,22 @@
 
       .matchlayout {
         display: grid;
-        grid-template-columns: minmax(330px, 400px) 1fr;
-        gap: 16px;
+        grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+        gap: 20px;
         align-items: start;
       }
 
+      /* The whole panel sticks as a side column on desktop, so the inner card
+         does not need its own stickiness here. */
       .matchpanel {
+        position: sticky;
         top: 16px;
-        padding-bottom: 0;
-        background: transparent;
+      }
+
+      .matchcard {
+        position: relative;
+        top: auto;
+        z-index: auto;
       }
 
       .matchscroll {
@@ -2028,21 +2184,25 @@
       <div class="matcheshead">
         <h1 class="screentitle">Matches</h1>
       </div>
-      <div class="searchbar">
-        <span class="sicon" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
-            <line x1="16" y1="16" x2="21" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-          </svg>
-        </span>
-        <input id="matchSearch" type="search" placeholder="Search by team" autocomplete="off"
-          aria-label="Search matches by team name" />
-        <button class="sclear" id="searchClear" type="button" aria-label="Clear search" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-          </svg>
-        </button>
+      <div class="searchwrap">
+        <div class="searchbar">
+          <span class="sicon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <line x1="16" y1="16" x2="21" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </span>
+          <input id="matchSearch" type="search" placeholder="Search by team" autocomplete="off"
+            role="combobox" aria-expanded="false" aria-controls="searchSuggest" aria-autocomplete="list"
+            aria-label="Search matches by team name" />
+          <button class="sclear" id="searchClear" type="button" aria-label="Clear search" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div class="suggest" id="searchSuggest" role="listbox" aria-label="Team suggestions" hidden></div>
       </div>
       <div id="matchGroups">
         <div class="matches-empty">Loading today and tomorrow's fixtures...</div>
@@ -2697,7 +2857,7 @@
       feed: $("feed"), feedCount: $("feedCount"),
       muteBtn: $("muteBtn"), muteBtnText: $("muteBtnText"), muteIcon: $("muteIcon"),
       matchesView: $("matchesView"), matchView: $("matchView"), matchGroups: $("matchGroups"),
-      matchSearch: $("matchSearch"), searchClear: $("searchClear"),
+      matchSearch: $("matchSearch"), searchClear: $("searchClear"), searchSuggest: $("searchSuggest"),
       navMatches: $("navMatches"), navDemo: $("navDemo"),
       psHome: $("psHome"), psAway: $("psAway"), psHomeScore: $("psHomeScore"), psAwayScore: $("psAwayScore"), psMin: $("psMin"),
       backBtn: $("backBtn"), demoNote: $("demoNote"), reactLayer: $("reactLayer"),
@@ -3498,6 +3658,20 @@
     // The last fixtures snapshot, kept so the team search can re-filter without refetching.
     let allFixtures = [];
     let searchTerm = "";
+    // Unique team names pulled from the fixtures snapshot, used to power the search
+    // suggestions. Derived from real data so it never drifts from what is playable.
+    let teamNames = [];
+    // Index of the highlighted suggestion for keyboard navigation, -1 when none.
+    let suggestActive = -1;
+
+    function buildTeamNames() {
+      const set = new Set();
+      for (const f of allFixtures) {
+        if (f.home) set.add(f.home);
+        if (f.away) set.add(f.away);
+      }
+      teamNames = Array.from(set).sort((a, b) => a.localeCompare(b));
+    }
 
     function showMatches() {
       if (game && game.feed) { game.feed.stop(); game.feed = null; }
@@ -3522,10 +3696,12 @@
       } catch (e) {
         console.warn("[Pitchside] fixtures unavailable:", e);
         allFixtures = [];
-        els.matchGroups.innerHTML = '<div class="matches-empty">Fixtures are unavailable right now. You can still open the Demo from the top nav.</div>';
+        teamNames = [];
+        renderUnavailable();
         return;
       }
       allFixtures = Array.isArray(list) ? list : [];
+      buildTeamNames();
       renderFixtures();
     }
 
@@ -3566,9 +3742,14 @@
     // Render the picker from allFixtures: Live and Finished (both tappable) as the main
     // list, then an Upcoming daily schedule (today and tomorrow) at the end. A team
     // search filters every group.
+    // When the schedule is empty, the friendly empty state can offer to reveal every
+    // finished match in the snapshot for replay, not just today and tomorrow's.
+    let showAllFinished = false;
+
     function renderFixtures() {
       const fixtures = allFixtures
-        .filter(f => f.status === "live" || withinTodayTomorrow(f.kickoff))
+        .filter(f => f.status === "live" || withinTodayTomorrow(f.kickoff)
+          || (showAllFinished && f.status === "finished"))
         .filter(matchesSearch);
       const groups = { live: [], upcoming: [], finished: [] };
       for (const f of fixtures) (groups[f.status] || groups.upcoming).push(f);
@@ -3598,14 +3779,95 @@
         els.matchGroups.appendChild(sec);
       }
       if (!any) {
-        const msg = searchTerm
-          ? 'No matches found for "' + searchTerm + '". Try another team name.'
-          : 'No fixtures scheduled for today or tomorrow. Open the Demo from the top nav to explore Pitchside.';
-        const empty = document.createElement("div");
-        empty.className = "matches-empty";
-        empty.textContent = msg;
-        els.matchGroups.appendChild(empty);
+        if (searchTerm) {
+          const empty = document.createElement("div");
+          empty.className = "matches-empty";
+          empty.textContent = 'No matches found for "' + searchTerm + '". Try another team name.';
+          els.matchGroups.appendChild(empty);
+        } else {
+          els.matchGroups.appendChild(buildEmptyState());
+        }
       }
+    }
+
+    // SVG building block for the empty state and its buttons. No emoji, icons only.
+    const EMPTY_CAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
+    const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 L19 12 L8 19 Z" fill="currentColor"/></svg>';
+    const REPLAY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 a9 9 0 1 0 3-6.7"/><path d="M3 4 v4 h4"/></svg>';
+
+    // A clear, friendly empty state: explains the empty data window and points to the
+    // Demo and to recently finished matches for replay.
+    function buildEmptyState() {
+      const wrap = document.createElement("div");
+      wrap.className = "emptystate";
+
+      const icon = document.createElement("div");
+      icon.className = "es-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = EMPTY_CAL_ICON;
+
+      const title = document.createElement("div");
+      title.className = "es-title";
+      title.textContent = "No live or scheduled matches right now";
+
+      const text = document.createElement("div");
+      text.className = "es-text";
+      text.textContent = "There are no fixtures in the current data window (today and tomorrow). "
+        + "You can explore Pitchside with the Demo, or replay a recently finished match.";
+
+      const actions = document.createElement("div");
+      actions.className = "es-actions";
+
+      const demoBtn = document.createElement("button");
+      demoBtn.type = "button";
+      demoBtn.className = "es-btn primary";
+      demoBtn.innerHTML = PLAY_ICON + "<span>Open Demo</span>";
+      demoBtn.addEventListener("click", openDemo);
+      actions.appendChild(demoBtn);
+
+      // Only offer the replay shortcut when finished matches actually exist to replay.
+      const hasFinished = allFixtures.some(f => f.status === "finished");
+      if (hasFinished && !showAllFinished) {
+        const replayBtn = document.createElement("button");
+        replayBtn.type = "button";
+        replayBtn.className = "es-btn";
+        replayBtn.innerHTML = REPLAY_ICON + "<span>Replay a finished match</span>";
+        replayBtn.addEventListener("click", () => { showAllFinished = true; renderFixtures(); });
+        actions.appendChild(replayBtn);
+      }
+
+      wrap.appendChild(icon);
+      wrap.appendChild(title);
+      wrap.appendChild(text);
+      wrap.appendChild(actions);
+      return wrap;
+    }
+
+    // Distinct state for when the fixtures endpoint itself fails, not just an empty window.
+    function renderUnavailable() {
+      els.matchGroups.innerHTML = "";
+      const wrap = document.createElement("div");
+      wrap.className = "emptystate";
+      const icon = document.createElement("div");
+      icon.className = "es-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = EMPTY_CAL_ICON;
+      const title = document.createElement("div");
+      title.className = "es-title";
+      title.textContent = "Fixtures are unavailable right now";
+      const text = document.createElement("div");
+      text.className = "es-text";
+      text.textContent = "We could not reach the scores feed. You can still explore Pitchside with the Demo.";
+      const actions = document.createElement("div");
+      actions.className = "es-actions";
+      const demoBtn = document.createElement("button");
+      demoBtn.type = "button";
+      demoBtn.className = "es-btn primary";
+      demoBtn.innerHTML = PLAY_ICON + "<span>Open Demo</span>";
+      demoBtn.addEventListener("click", openDemo);
+      actions.appendChild(demoBtn);
+      wrap.appendChild(icon); wrap.appendChild(title); wrap.appendChild(text); wrap.appendChild(actions);
+      els.matchGroups.appendChild(wrap);
     }
 
     function matchRow(f) {
@@ -3680,15 +3942,97 @@
     els.navMatches.addEventListener("click", showMatches);
     els.navDemo.addEventListener("click", openDemo);
 
+    // ---- Team search suggestions ------------------------------------------------
+    // As the fan types, suggest real team names drawn from the fixtures snapshot.
+    // Picking one fills the box and filters the list. List filtering also happens
+    // live, so the dropdown is a convenience, not a gate.
+    const TEAM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 L19 6 V11 C19 16 16 19.5 12 21 C8 19.5 5 16 5 11 V6 Z"/></svg>';
+
+    function hideSuggest() {
+      els.searchSuggest.hidden = true;
+      els.searchSuggest.innerHTML = "";
+      suggestActive = -1;
+      els.matchSearch.setAttribute("aria-expanded", "false");
+    }
+
+    function renderSuggestions() {
+      const q = els.matchSearch.value.trim().toLowerCase();
+      if (!q || !teamNames.length) { hideSuggest(); return; }
+      const matches = teamNames.filter(n => n.toLowerCase().includes(q)).slice(0, 8);
+      // No point showing a single suggestion that is exactly what is already typed.
+      if (!matches.length || (matches.length === 1 && matches[0].toLowerCase() === q)) {
+        hideSuggest();
+        return;
+      }
+      els.searchSuggest.innerHTML = "";
+      suggestActive = -1;
+      matches.forEach((name, i) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "suggest-item";
+        item.setAttribute("role", "option");
+        item.dataset.idx = String(i);
+        item.dataset.name = name;
+        const icon = document.createElement("span");
+        icon.className = "si-icon";
+        icon.innerHTML = TEAM_ICON;
+        const label = document.createElement("span");
+        label.textContent = name;
+        item.appendChild(icon);
+        item.appendChild(label);
+        // mousedown (not click) so the pick lands before the input blur hides the list.
+        item.addEventListener("mousedown", e => { e.preventDefault(); pickSuggestion(name); });
+        els.searchSuggest.appendChild(item);
+      });
+      els.searchSuggest.hidden = false;
+      els.matchSearch.setAttribute("aria-expanded", "true");
+    }
+
+    function highlightSuggest(next) {
+      const items = els.searchSuggest.querySelectorAll(".suggest-item");
+      if (!items.length) return;
+      suggestActive = (next + items.length) % items.length;
+      items.forEach((it, i) => it.classList.toggle("active", i === suggestActive));
+      items[suggestActive].scrollIntoView({ block: "nearest" });
+    }
+
+    function pickSuggestion(name) {
+      els.matchSearch.value = name;
+      searchTerm = name.toLowerCase();
+      els.searchClear.hidden = false;
+      hideSuggest();
+      renderFixtures();
+    }
+
     // Team search: filter the picker live as the fan types, with a clear button.
     els.matchSearch.addEventListener("input", () => {
       searchTerm = els.matchSearch.value.trim().toLowerCase();
       els.searchClear.hidden = !els.matchSearch.value;
+      renderSuggestions();
       renderFixtures();
     });
+    els.matchSearch.addEventListener("focus", () => {
+      if (els.matchSearch.value.trim()) renderSuggestions();
+    });
+    els.matchSearch.addEventListener("keydown", e => {
+      const open = !els.searchSuggest.hidden;
+      if (e.key === "ArrowDown") { e.preventDefault(); if (!open) renderSuggestions(); highlightSuggest(suggestActive + 1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); highlightSuggest(suggestActive - 1); }
+      else if (e.key === "Enter") {
+        const items = els.searchSuggest.querySelectorAll(".suggest-item");
+        if (open && suggestActive >= 0 && items[suggestActive]) {
+          e.preventDefault();
+          pickSuggestion(items[suggestActive].dataset.name);
+        }
+      } else if (e.key === "Escape") { hideSuggest(); }
+    });
+    // Hide on blur, after any suggestion mousedown has had a chance to fire.
+    els.matchSearch.addEventListener("blur", () => setTimeout(hideSuggest, 120));
+
     els.searchClear.addEventListener("click", () => {
       els.matchSearch.value = ""; searchTerm = "";
       els.searchClear.hidden = true;
+      hideSuggest();
       renderFixtures();
       els.matchSearch.focus();
     });
