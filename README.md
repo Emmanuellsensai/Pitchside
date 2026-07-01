@@ -1,105 +1,76 @@
-# Touchline
+# Pitchside
 
-A live higher-or-lower streak game for the World Cup. Call who wins the next corner,
-build a streak, share it. Data comes from the TxLINE sports feed on Solana devnet.
+A live match companion for the World Cup. Subscribe to a match and follow every moment as it happens: goals, corners, and cards animate on a live pitch, a momentum meter tracks the swing of play, and a Fan Zone lets supporters chat and call the action together in real time. Built on the TxLINE sports data feed over Solana.
 
-The project has three parts:
+Pitchside is built for the fan watching on their phone, the experience that until now only large operators could offer, made into something anyone can open and enjoy.
 
-- `scripts/` A one-time Node + Anchor handshake that runs on devnet and prints a
-  long-lived API token.
-- `proxy/` A small Go service that holds the token, opens the upstream TxLINE stream,
-  and re-streams it to the browser. It also serves the frontend.
-- `web/` The existing frontend with live, replay, and demo data adapters.
+## What it does
 
-The browser only ever talks to the proxy on the same origin. The token lives only in
-the proxy environment. Nothing secret is committed (see `.gitignore`).
+- **Live match view.** A SportyBet-inspired pitch reacts to real events: the ball drives into the net on a goal, a corner flag raises on a corner, and cards appear on a booking, all driven by the live TxLINE feed.
+- **Live alerts.** A running feed of every goal, corner, and card with the minute and team, with a mute toggle.
+- **Momentum and bottle watch.** A live pressure meter that leans toward the team on top and decays back when play settles, plus a bottle-risk indicator that rises when your chosen team holds a lead and then surrenders it.
+- **Fan Zone.** A real-time room per match where fans chat, send reactions, and cast no-stakes predictions (match winner and corners), with live sentiment bars showing how the room is calling it.
+- **Match list and replay.** Browse live and finished matches, search by team, and replay any finished match end to end in a couple of minutes.
 
-## 1. One-time setup: get the API token
+## How it works
 
-The handshake lives in `scripts/`. It loads the wallet from `dev-wallet.json`, loads
-the IDL from `idl/txoracle.json`, connects to devnet, runs the `subscribe` instruction
-(service level 12, 4 weeks), then activates and prints the JWT and API token.
-
-### Prerequisites
-
-A funded devnet wallet at `scripts/dev-wallet.json`:
-
-```bash
-solana-keygen new --no-bip39-passphrase --outfile scripts/dev-wallet.json
-solana config set --url https://api.devnet.solana.com
-solana airdrop 2 $(solana-keygen pubkey scripts/dev-wallet.json)
-solana balance $(solana-keygen pubkey scripts/dev-wallet.json)
-```
-
-If the airdrop is rate limited, retry or use the web faucet at https://faucet.solana.com.
-
-### Run the handshake
-
-```bash
-cd scripts
-npm install
-npm run subscribe
-```
-
-This prints two lines at the end:
+Pitchside reads the TxLINE scores feed for live and historical match data. Access is granted through a one-time Solana subscription, which mints an API token used to stream data. A small Go service holds that token, streams the data to the browser over Server-Sent Events, and hosts the frontend, so the token never reaches the client. The Fan Zone runs over WebSockets, with one in-memory room per match.
 
 ```
-TXLINE_JWT=...
-TXLINE_API_TOKEN=...
+Solana devnet  ->  subscription + API token
+TxLINE feed    ->  Go proxy (token held server-side, SSE relay + WebSocket Fan Zone)
+Go proxy       ->  browser (live pitch, alerts, Fan Zone)
 ```
 
-Copy both into the proxy environment (see below). The JWT is valid 30 days.
+## Tech stack
 
-Notes:
-- If the program returns error 6016 (ActiveSubscription), that is fine. The script
-  reuses the existing subscription and proceeds straight to activation.
-- Error 6041 (InvalidWeeks) means weeks was not a multiple of 4.
-- The TxL mint is a Token-2022 mint, so the script creates the user associated token
-  account with `TOKEN_2022_PROGRAM_ID` before subscribing if it does not exist.
+- **Frontend:** vanilla HTML, CSS, and JavaScript, mobile-first, no framework.
+- **Backend:** Go (standard library plus coder/websocket), acting as a token proxy, SSE relay, static host, and Fan Zone hub.
+- **Data:** TxLINE sports feed (scores, fixtures).
+- **Chain:** Solana devnet, used for the data subscription.
 
-## 2. Run the proxy and frontend
+## TxLINE endpoints used
 
-The Go proxy holds the token, streams scores, and serves the frontend. It is
-standard library only, so there is nothing to `go get`. Put the tokens in
-`proxy/.env` (gitignored), which the proxy loads automatically on start:
+- `POST /auth/guest/start` — guest authentication
+- `POST /api/token/activate` — activate the API token after subscribing on-chain
+- `GET /api/scores/stream` — live score and event stream (SSE)
+- `GET /api/scores/historical/{fixtureId}` — full event history for replay
+- Fixtures snapshot — live and upcoming match list
 
-```bash
-cd proxy
-cp .env.example .env
-# edit .env, paste the TXLINE_JWT and TXLINE_API_TOKEN from the handshake
-go run .            # serves on :8080 by default
+## Running locally
+
+Requirements: Go 1.22+, Node 18+ (for the one-time subscription script), and a Solana wallet on devnet.
+
+1. **Get an API token.** Run the subscription script once to subscribe on devnet and print a JWT and API token:
+   ```
+   cd scripts && npm install && npm run subscribe
+   ```
+2. **Configure the proxy.** Put the printed values in `proxy/.env`:
+   ```
+   TXLINE_JWT=...
+   TXLINE_API_TOKEN=...
+   TXLINE_BASE=https://txline-dev.txodds.com
+   PORT=8080
+   ```
+3. **Run it.**
+   ```
+   cd proxy && go run .
+   ```
+4. Open `http://localhost:8080` and pick a match, or replay a finished one.
+
+The subscription lasts four weeks and the JWT thirty days, so step 1 is a one-time setup.
+
+## Project structure
+
+```
+pitchside/
+  web/        frontend (single-page app)
+  proxy/      Go service: token proxy, SSE relay, static host, Fan Zone hub
+  scripts/    one-time Solana subscription and fixtures helper
 ```
 
-Environment variables, if exported, override `.env`:
+## Notes
 
-```
-TXLINE_JWT          required, the guest JWT
-TXLINE_API_TOKEN    required, the activated API token
-TXLINE_BASE         default https://txline-dev.txodds.com
-PORT                default 8080
-WEB_DIR             default ../web
-```
+The prediction features are fan sentiment only, with no stakes and no money involved. Pitchside is an information and fan-engagement product, not a betting service.
 
-Routes:
-
-```
-GET /api/stream/scores              SSE relay of the upstream scores stream
-GET /api/scores/historical/{id}     JSON proxy of one fixture's history
-GET /api/fixtures/snapshot          JSON proxy of the fixtures list (team names)
-GET /api/push/vapidPublicKey        VAPID public key for web push subscriptions
-POST /api/push/subscribe            stores a browser push subscription (in memory)
-GET /ws?fixtureId=&name=            Fan Zone WebSocket, one room per fixture
-GET /  and static                   serves ../web, frontend at root
-```
-
-The Fan Zone is a live chat plus a fan-sentiment prediction board (picks, no
-stakes and no money), one room per fixtureId, held in memory only. It runs
-alongside the scores routes and does not touch the data layer.
-
-Open http://localhost:8080 and use the mode switch (demo / replay / live):
-
-- demo:   the offline simulated match, no proxy or token needed.
-- replay: plays a real fixture from history. Supply the fixture with
-          `?fixtureId=<id>` in the URL (otherwise the page asks for one).
-- live:   streams the real-time scores feed through the proxy.
-
+Built for the TxODDS World Cup hackathon on Superteam Earn.
