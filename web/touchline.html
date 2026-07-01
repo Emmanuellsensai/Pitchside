@@ -2138,6 +2138,40 @@
       transform: translateX(-50%) translateY(0)
     }
 
+    /* Mobile only: pin the entire match panel (the score card and the pitch together)
+       to the top of the viewport so the Fan Zone, alerts, momentum and bottle watch
+       scroll underneath it. The panel's ancestor chain (.matchlayout, #matchView,
+       .app, body, html) carries no overflow other than visible and no transform or
+       filter, so position: sticky resolves against the page scroll as intended. The
+       panel sticks within .matchlayout, whose remaining child (.matchscroll) provides
+       the scroll distance. An opaque background covers the gaps between the cards so
+       the scrolling content reads as passing beneath the pinned panel. */
+    @media (max-width: 779px) {
+      .matchpanel {
+        position: sticky;
+        top: 0;
+        z-index: 9;
+        background: var(--bg);
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      /* The full pitch plus score card is tall on a phone, so a full-height pitch
+         would fill the screen and leave nothing to scroll. Render the pitch shorter
+         while pinned so a usable scroll area remains beneath it. The pitch SVG uses
+         preserveAspectRatio="none" and percentage-based markers, so it scales cleanly
+         to a fixed height. */
+      .pitch {
+        aspect-ratio: auto;
+        height: 150px;
+      }
+
+      /* The old empty sticky score bar is superseded by the pinned panel. */
+      .mscorebar {
+        display: none;
+      }
+    }
+
     /* Desktop: widen the shell and split the match view into two columns, the
        match panel fixed on the left, the Fan Zone and alerts scrolling on the right. */
     @media (min-width: 780px) {
