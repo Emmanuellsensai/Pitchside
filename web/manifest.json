@@ -1,0 +1,14 @@
+{
+  "name": "Pitchside",
+  "short_name": "Pitchside",
+  "description": "Live match companion with goal, corner, card, and bottle alerts.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0D10",
+  "theme_color": "#E40521",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

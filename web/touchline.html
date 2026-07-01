@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pitchside, live match companion</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#E40521">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -217,6 +220,18 @@
   .feedhead{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 0}
   .feedhead .t{font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:0.02em}
   .feedhead .c{font-size:11px;color:var(--muted);font-family:var(--font-mono)}
+  .feedright{display:flex;align-items:center;gap:10px}
+  .subbtn{
+    appearance:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    border:1px solid color-mix(in srgb,var(--brand) 55%, transparent);background:transparent;
+    color:var(--text);font-family:var(--font-body);font-weight:600;font-size:12px;
+    border-radius:999px;padding:5px 11px;transition:background .12s ease, border-color .12s ease;
+  }
+  .subbtn svg{width:14px;height:14px}
+  .subbtn:hover{background:color-mix(in srgb,var(--brand) 14%, transparent)}
+  .subbtn.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+  .subbtn:disabled{opacity:.55;cursor:default}
+  .subbtn:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
   .feed{
     display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:var(--r);
     background:var(--surface);padding:10px;max-height:320px;overflow:auto;
@@ -350,7 +365,13 @@
 
     <div class="feedhead">
       <span class="t">Live alerts</span>
-      <span class="c" id="feedCount">0 events</span>
+      <span class="feedright">
+        <span class="c" id="feedCount">0 events</span>
+        <button class="subbtn" id="subBtn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          <span id="subBtnText">Notify me</span>
+        </button>
+      </span>
     </div>
     <div class="feed" id="feed"><div class="empty">Goals, corners and cards will appear here as they happen.</div></div>
 
@@ -747,6 +768,7 @@ const els = {
   favHome:$("favHome"), favAway:$("favAway"), favHomeName:$("favHomeName"), favAwayName:$("favAwayName"),
   bottleStatus:$("bottleStatus"), bottleBanner:$("bottleBanner"), bottleBannerText:$("bottleBannerText"),
   feed:$("feed"), feedCount:$("feedCount"),
+  subBtn:$("subBtn"), subBtnText:$("subBtnText"),
   conn:$("conn"), connText:$("connText"), toast:$("toast")
 };
 
@@ -997,6 +1019,8 @@ function selectFav(side){
   // Seed the lead state from the current score so an existing lead counts.
   evaluateBottle(game.hScore, game.aScore, null, true);
   updateBottleStatus();
+  // Keep any push subscription pointed at the new favourite for bottle alerts.
+  if (pushState.sub) postSubscription(pushState.sub).catch(() => {});
 }
 function syncFavButtons(){
   els.favHome.classList.toggle("sel", game.fav === "home");
@@ -1060,9 +1084,95 @@ document.querySelectorAll(".mode").forEach(btn => {
   });
 });
 
+/* ----------------------------------------------------------------------------
+   PWA AND WEB PUSH
+   Registers a service worker and lets the fan subscribe to push alerts, so goals,
+   corners, cards, and bottle moments arrive even with the tab closed. The VAPID
+   public key and the subscription store both live in the proxy.
+---------------------------------------------------------------------------- */
+const pushState = { reg:null, sub:null };
+
+function pushSupported(){
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+
+// Convert a base64url VAPID key into the Uint8Array applicationServerKey wants.
+function urlBase64ToUint8Array(base64String){
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+function currentFixtureId(){
+  return replayFixtureId || (game && game.fixture && game.fixture.fixtureId) || "";
+}
+
+function subscriptionBody(sub){
+  return {
+    subscription: sub.toJSON(),
+    fav: (game && game.fav) || "",
+    fixtureId: currentFixtureId() || "",
+    teams: { home: game.fixture.home.name, away: game.fixture.away.name }
+  };
+}
+
+async function postSubscription(sub){
+  await fetch("/api/push/subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(subscriptionBody(sub))
+  });
+}
+
+async function registerServiceWorker(){
+  if (!pushSupported()){ els.subBtn.disabled = true; els.subBtnText.textContent = "No push"; return; }
+  try {
+    pushState.reg = await navigator.serviceWorker.register("/sw.js");
+    pushState.sub = await pushState.reg.pushManager.getSubscription();
+    syncSubButton();
+  } catch (e){ console.warn("[Pitchside] service worker registration failed:", e); }
+}
+
+async function subscribeToPush(){
+  if (!pushSupported()){ toast("Push is not supported here"); return; }
+  if (pushState.sub){ toast("Alerts already on"); return; }
+  els.subBtn.disabled = true;
+  try {
+    if (!pushState.reg) await registerServiceWorker();
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted"){ toast("Notifications blocked"); return; }
+    const key = (await (await fetch("/api/push/vapidPublicKey")).text()).trim();
+    if (!key){ toast("Push not configured on the server"); return; }
+    pushState.sub = await pushState.reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key)
+    });
+    await postSubscription(pushState.sub);
+    syncSubButton();
+    toast("Alerts on. You can close the tab.");
+  } catch (e){
+    console.error("[Pitchside] push subscribe failed:", e);
+    toast("Could not enable alerts");
+  } finally {
+    els.subBtn.disabled = false;
+  }
+}
+
+function syncSubButton(){
+  const on = !!pushState.sub;
+  els.subBtnText.textContent = on ? "Alerts on" : "Notify me";
+  els.subBtn.classList.toggle("on", on);
+}
+
+els.subBtn.addEventListener("click", subscribeToPush);
+
 /* boot */
 syncModeButtons();
 startMatch(FIXTURES[0]);
+registerServiceWorker();
 </script>
 </body>
 </html>

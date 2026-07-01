@@ -83,10 +83,17 @@ func main() {
 		log.Fatal("TXLINE_JWT and TXLINE_API_TOKEN must be set (see proxy/.env.example)")
 	}
 
+	// Web push: in-memory subscriptions plus a background watcher that turns the
+	// upstream scores stream into goal, corner, card, and bottle notifications.
+	hub := newPushHub()
+	go hub.runWatcher(cfg)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/stream/scores", cfg.handleStream)
 	mux.HandleFunc("GET /api/scores/historical/{fixtureId}", cfg.handleHistorical)
 	mux.HandleFunc("GET /api/fixtures/snapshot", cfg.handleSnapshot)
+	mux.HandleFunc("GET /api/push/vapidPublicKey", hub.handleVapidKey)
+	mux.HandleFunc("POST /api/push/subscribe", hub.handleSubscribe)
 	mux.Handle("/", cfg.staticHandler())
 
 	addr := ":" + cfg.Port
