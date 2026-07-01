@@ -217,7 +217,7 @@ func (c Config) proxyGet(w http.ResponseWriter, r *http.Request, upstreamPath st
 }
 
 // staticHandler serves the web directory. The root path serves index.html if it
-// exists, otherwise touchline.html, so the single-page frontend loads at /.
+// exists, otherwise index.html, so the single-page frontend loads at /.
 func (c Config) staticHandler() http.Handler {
 	fs := http.FileServer(http.Dir(c.WebDir))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +227,7 @@ func (c Config) staticHandler() http.Handler {
 				http.ServeFile(w, r, index)
 				return
 			}
-			http.ServeFile(w, r, filepath.Join(c.WebDir, "touchline.html"))
+			http.ServeFile(w, r, filepath.Join(c.WebDir, "index.html"))
 			return
 		}
 		fs.ServeHTTP(w, r)
