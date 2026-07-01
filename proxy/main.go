@@ -96,6 +96,7 @@ func main() {
 	mux.HandleFunc("GET /api/stream/scores", cfg.handleStream)
 	mux.HandleFunc("GET /api/scores/historical/{fixtureId}", cfg.handleHistorical)
 	mux.HandleFunc("GET /api/fixtures/snapshot", cfg.handleSnapshot)
+	mux.HandleFunc("GET /api/fixtures", cfg.handleFixtures)
 	mux.HandleFunc("GET /api/push/vapidPublicKey", hub.handleVapidKey)
 	mux.HandleFunc("POST /api/push/subscribe", hub.handleSubscribe)
 	mux.HandleFunc("GET /ws", fan.handleWS)

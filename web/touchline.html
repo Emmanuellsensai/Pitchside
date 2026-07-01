@@ -253,7 +253,11 @@
   .alert.goal .ic{background:color-mix(in srgb,var(--brand) 22%, var(--surface-3))}
   .alert.bottle .ic{background:color-mix(in srgb,var(--brand) 26%, var(--surface-3))}
   .alert .body{min-width:0;flex:1}
-  .alert .lab{font-size:13px;font-weight:600;line-height:1.25}
+  .alert .lab{font-size:13px;line-height:1.25}
+  /* Team name reads bold and white, the event word lighter and muted so the two
+     are easy to tell apart at a glance. */
+  .alert .lab-team{font-weight:600;color:var(--text)}
+  .alert .lab-evt{font-weight:400;color:var(--muted)}
   .alert .meta{font-size:11px;color:var(--muted);font-family:var(--font-mono)}
   .alert .min{
     font-family:var(--font-mono);font-size:12px;color:var(--text);background:var(--surface-3);
@@ -310,6 +314,105 @@
   .brmeter .brtrack{fill:var(--surface-3)}
   .brmeter .brfill{fill:var(--brand)}
   .brmeter rect{transition:width .5s ease,fill .5s ease}
+
+  /* Matches screen */
+  #matchView{display:flex;flex-direction:column;gap:12px}
+  .matchnav{display:flex}
+  .screentitle{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-0.01em;margin:0}
+  .matcheshead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 2px}
+  .demobtn{
+    appearance:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    border:1px solid var(--line);background:var(--surface);color:var(--text);
+    font-family:var(--font-body);font-weight:600;font-size:12px;border-radius:999px;padding:7px 12px;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .demobtn svg{width:14px;height:14px}
+  .demobtn:hover{border-color:#3a4651}
+  .demobtn:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
+
+  .mgroup{margin-bottom:16px}
+  .mgroup-head{
+    display:flex;align-items:center;gap:8px;margin:0 2px 8px;
+    font-family:var(--font-display);font-weight:700;font-size:12px;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);
+  }
+  .mgroup-head .gdot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .mgroup.live .mgroup-head{color:var(--text)}
+  .mgroup.live .mgroup-head .gdot{background:var(--brand);animation:pulse 1.5s infinite}
+  .mgroup-list{display:flex;flex-direction:column;gap:8px}
+
+  .matchrow{
+    width:100%;text-align:left;appearance:none;cursor:pointer;
+    display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:10px;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+    color:var(--text);font-family:var(--font-body);transition:border-color .12s ease, background .12s ease;
+  }
+  .matchrow.tap:hover{border-color:color-mix(in srgb,var(--brand) 50%, var(--line));background:var(--surface-2)}
+  .matchrow.flat{cursor:default}
+  .matchrow:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
+  .mr-badge{
+    font-family:var(--font-mono);font-size:9.5px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;
+    text-align:center;border-radius:6px;padding:4px 5px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;
+  }
+  .mr-badge.live{color:#fff;border-color:color-mix(in srgb,var(--brand) 55%, transparent);background:color-mix(in srgb,var(--brand) 18%, transparent)}
+  .mr-badge.finished{color:var(--text)}
+  .mr-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+  .mr-teams{font-family:var(--font-display);font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mr-teams .vs{color:var(--muted);font-weight:400;margin:0 5px}
+  .mr-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-mono)}
+  .mr-right{display:flex;align-items:center;gap:8px;justify-self:end}
+  .mr-score{font-family:var(--font-mono);font-weight:500;font-size:17px;letter-spacing:-0.01em;white-space:nowrap}
+  .mr-score .sc-sep{color:var(--muted);margin:0 2px}
+  .mr-chev{width:16px;height:16px;color:var(--muted);flex:none}
+  .mr-chev svg{width:16px;height:16px;display:block}
+  .matches-empty{color:var(--muted);font-size:13px;text-align:center;padding:26px 10px}
+
+  /* Back to matches */
+  .backbtn{
+    appearance:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    border:1px solid var(--line);background:var(--surface);color:var(--text);
+    font-family:var(--font-body);font-weight:600;font-size:12.5px;border-radius:999px;padding:7px 13px;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .backbtn svg{width:15px;height:15px}
+  .backbtn:hover{border-color:#3a4651}
+  .backbtn:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
+
+  /* Demo simulation disclaimer */
+  .demonote{
+    display:flex;gap:9px;align-items:flex-start;border-radius:12px;padding:10px 12px;
+    background:color-mix(in srgb,var(--brand) 12%, var(--surface));
+    border:1px solid color-mix(in srgb,var(--brand) 45%, transparent);
+  }
+  .demonote svg{width:18px;height:18px;flex:none;margin-top:1px}
+  .demonote .dn-txt{font-size:12px;line-height:1.4;color:var(--text)}
+  .demonote .dn-txt b{font-weight:700}
+
+  /* Fan Zone live reactions */
+  .fz-reacts{display:flex;align-items:center;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+  .fz-reacts .rl{font-size:11px;color:var(--muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.05em}
+  .reactbtn{
+    appearance:none;cursor:pointer;width:38px;height:34px;display:grid;place-items:center;
+    border:1px solid var(--line);background:var(--surface-2);border-radius:10px;color:var(--text);
+    transition:border-color .12s ease, background .12s ease, transform .08s ease;
+  }
+  .reactbtn svg{width:19px;height:19px;display:block}
+  .reactbtn:hover{border-color:color-mix(in srgb,var(--brand) 50%, var(--line));background:var(--surface-3)}
+  .reactbtn:active{transform:scale(.9)}
+  .reactbtn:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
+
+  /* Reactions floating up over the pitch */
+  .react-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:7}
+  .react-float{
+    position:absolute;bottom:4%;width:30px;height:30px;
+    filter:drop-shadow(0 3px 5px rgba(0,0,0,.5));
+    animation:reactrise 1.9s cubic-bezier(.3,.1,.4,1) forwards;
+  }
+  .react-float svg{width:100%;height:100%;display:block}
+  @keyframes reactrise{
+    0%{opacity:0;transform:translateY(8px) scale(.6)}
+    14%{opacity:1;transform:translateY(0) scale(1)}
+    100%{opacity:0;transform:translateY(-150px) scale(1.05)}
+  }
 
   /* Fan Zone */
   .fanzone h2 .fz-conn{
@@ -424,11 +527,35 @@
       <div class="tag">Live match companion</div>
     </header>
 
-    <div class="modes" role="tablist" aria-label="Data mode">
-      <button class="mode sel" data-mode="demo" role="tab">Demo</button>
-      <button class="mode" data-mode="replay" role="tab">Replay</button>
-      <button class="mode" data-mode="live" role="tab">Live</button>
-    </div>
+    <section id="matchesView" aria-label="Matches">
+      <div class="matcheshead">
+        <h1 class="screentitle">Matches</h1>
+        <button class="demobtn" id="openDemoBtn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5 L19 12 L7 19 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          <span>Demo simulation</span>
+        </button>
+      </div>
+      <div id="matchGroups"><div class="matches-empty">Loading today and tomorrow's fixtures...</div></div>
+    </section>
+
+    <div id="matchView" hidden>
+      <div class="matchnav">
+        <button class="backbtn" id="backBtn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Matches</span>
+        </button>
+      </div>
+
+      <div class="modes" role="tablist" aria-label="Data mode">
+        <button class="mode sel" data-mode="demo" role="tab">Demo</button>
+        <button class="mode" data-mode="replay" role="tab">Replay</button>
+        <button class="mode" data-mode="live" role="tab">Live</button>
+      </div>
+
+      <div class="demonote" id="demoNote" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--brand)" stroke-width="1.6"/><line x1="12" y1="11" x2="12" y2="16" stroke="var(--brand)" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.5" r="1.1" fill="var(--brand)"/></svg>
+        <div class="dn-txt"><b>Demo is a fun simulation.</b> It does not reflect the real score of any scheduled match. Open a real fixture from Matches to follow live or replay action.</div>
+      </div>
 
     <section class="matchcard" aria-label="Match">
       <div class="comprow">
@@ -498,6 +625,7 @@
 
         <div class="flash" id="flash" aria-hidden="true"></div>
         <div class="goalword" id="goalWord">Goal</div>
+        <div class="react-layer" id="reactLayer" aria-hidden="true"></div>
       </div>
     </div>
 
@@ -533,10 +661,6 @@
           <span id="muteIcon"></span>
           <span id="muteBtnText">Alerts on</span>
         </button>
-        <button class="subbtn" id="subBtn" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-          <span id="subBtnText">Notify me</span>
-        </button>
       </span>
     </div>
     <div class="feed" id="feed"><div class="empty">Goals, corners and cards will appear here as they happen.</div></div>
@@ -552,6 +676,14 @@
       <div class="fz-tabs" role="tablist" aria-label="Fan Zone tabs">
         <button class="fz-tab sel" data-fz="chat" role="tab">Chat</button>
         <button class="fz-tab" data-fz="picks" role="tab">Predictions</button>
+      </div>
+
+      <div class="fz-reacts" id="fzReacts" role="group" aria-label="Send a live reaction">
+        <span class="rl">React</span>
+        <button class="reactbtn" type="button" data-react="fire" aria-label="Fire reaction"></button>
+        <button class="reactbtn" type="button" data-react="clap" aria-label="Clap reaction"></button>
+        <button class="reactbtn" type="button" data-react="shock" aria-label="Shock reaction"></button>
+        <button class="reactbtn" type="button" data-react="sad" aria-label="Sad reaction"></button>
       </div>
 
       <div class="fz-name" id="fzNameRow">
@@ -595,6 +727,7 @@
     <div class="credit">
       <span class="conn" id="conn"><span class="d"></span><span id="connText">Demo match</span></span>
       <span>Data by TxLINE</span>
+    </div>
     </div>
   </main>
 
@@ -1000,8 +1133,9 @@ const els = {
   favHome:$("favHome"), favAway:$("favAway"), favHomeName:$("favHomeName"), favAwayName:$("favAwayName"),
   bottleStatus:$("bottleStatus"), bottleBanner:$("bottleBanner"), bottleBannerText:$("bottleBannerText"),
   feed:$("feed"), feedCount:$("feedCount"),
-  subBtn:$("subBtn"), subBtnText:$("subBtnText"),
   muteBtn:$("muteBtn"), muteBtnText:$("muteBtnText"), muteIcon:$("muteIcon"),
+  matchesView:$("matchesView"), matchView:$("matchView"), matchGroups:$("matchGroups"),
+  backBtn:$("backBtn"), openDemoBtn:$("openDemoBtn"), demoNote:$("demoNote"), reactLayer:$("reactLayer"),
   moHome:$("moHome"), moAway:$("moAway"),
   moFillHome:$("moFillHome"), moFillAway:$("moFillAway"), moKnob:$("moKnob"),
   brFill:$("brFill"), brPct:$("brPct"),
@@ -1015,7 +1149,14 @@ const ICONS = {
   bottle: '<svg viewBox="0 0 24 24"><path d="M12 3 L22 20 H2 Z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><line x1="12" y1="9" x2="12" y2="14" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="17" r="1.1" fill="#fff"/></svg>',
   cardRect: kind => '<span class="card-rect ' + kind + '"></span>',
   bellOn: '<svg viewBox="0 0 24 24"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
-  bellOff: '<svg viewBox="0 0 24 24"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="1.9"/></svg>'
+  bellOff: '<svg viewBox="0 0 24 24"><path d="M12 3 a6 6 0 0 0 -6 6 c0 5 -2 6 -2 6 h16 s-2 -1 -2 -6 a6 6 0 0 0 -6 -6 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19 a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="1.9"/></svg>',
+  // Live reaction icons. SVG only, with SportyBet red accents, never emoji.
+  react: {
+    fire: '<svg viewBox="0 0 24 24"><path d="M12 2 C 14 6 18 8 16 13 A 4.5 4.5 0 1 1 8 13 C 8.5 11 10 10.5 10 9 C 11.5 10 11 11.5 12 11.5 C 13 11.5 13 8 12 2 Z" fill="var(--brand)"/><path d="M12 18 a2.4 2.4 0 0 1 -2.4 -2.6 C 10 14 11 13.6 11.2 12.6 C 12 13.4 12 14.4 12.6 14.4 C 13.3 14.4 13.4 13.2 13.2 12.4 C 14.6 13.4 14.4 17.9 12 18 Z" fill="#FFD0C2"/></svg>',
+    clap: '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13.5 L5.4 10.8 a1.4 1.4 0 0 1 2 -2 L10 11 V5.2 a1.3 1.3 0 0 1 2.6 0 V10 l.8 -4.4 a1.3 1.3 0 0 1 2.55 .55 L17 11 c.6 3 -1 5.9 -4 6.4 c-2.6 .4 -4 -1.1 -5 -3.9 Z"/></g><path d="M14.5 3.4 l1 -1.6 M17.8 5 l1.6 -1.1 M18.4 8.8 l1.9 -.4" fill="none" stroke="var(--brand)" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    shock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="10" r="1.1" fill="currentColor"/><circle cx="15" cy="10" r="1.1" fill="currentColor"/><ellipse cx="12" cy="15.4" rx="2" ry="2.6" fill="none" stroke="var(--brand)" stroke-width="1.6"/></svg>',
+    sad: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="10.5" r="1.1" fill="currentColor"/><circle cx="15" cy="10.5" r="1.1" fill="currentColor"/><path d="M8.4 16.2 Q 12 13.2 15.6 16.2" fill="none" stroke="var(--brand)" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  }
 };
 
 let game = null;
@@ -1082,11 +1223,13 @@ function startMatch(fixture){
   };
 
   renderTeams(fixture);
+  els.demoNote.hidden = (currentMode !== "demo");   // simulation disclaimer in demo
   setScore(0, 0);
   setClock(0, 1);
   clearFeed();
   resetPitch();
   resetPressure();
+  if (els.reactLayer) els.reactLayer.innerHTML = "";
   syncFavButtons();
   els.bottleBanner.classList.remove("show");
   updateBottleStatus();
@@ -1202,7 +1345,7 @@ function onGoal(side, minute){
   }, 1100);
 
   nudgeMomentum(side, 0.55);
-  addAlert("goal", minute, teamName(side) + " goal", "", side);
+  addAlert("goal", minute, teamName(side), "goal", "", side);
 }
 
 function onCorner(side, minute){
@@ -1234,7 +1377,7 @@ function onCorner(side, minute){
   if (game.fav && side !== game.fav && favDiff(game.hScore, game.aScore) >= 1){
     bottleRisk = Math.min(1, bottleRisk + 0.06); renderBottleRisk();
   }
-  addAlert("corner", minute, teamName(side) + " corner", "", side);
+  addAlert("corner", minute, teamName(side), "corner", "", side);
 }
 
 function onCard(side, kind, minute){
@@ -1247,7 +1390,7 @@ function onCard(side, kind, minute){
     bottleRisk = Math.min(1, bottleRisk + (kind === "red" ? 0.15 : 0.08)); renderBottleRisk();
   }
   const label = (kind === "red" ? "red card" : "yellow card");
-  addAlert("card", minute, teamName(side) + " " + label, "", side, kind);
+  addAlert("card", minute, teamName(side), label, "", side, kind);
 }
 
 /* --- Live alert feed --- */
@@ -1262,7 +1405,9 @@ function fmtMinute(m){
   if (/^\d+$/.test(String(m))) return m + "'";
   return String(m);
 }
-function addAlert(type, minute, label, meta, side, kind){
+// lead is the bold subject (team name, or "Bottle alert"); evt is the lighter,
+// muted event word (goal, corner, yellow card, red card) shown after a space.
+function addAlert(type, minute, lead, evt, meta, side, kind){
   if (alertsMuted) return;          // match alerts muted, skip the feed
   const empty = els.feed.querySelector(".empty");
   if (empty) empty.remove();
@@ -1276,9 +1421,11 @@ function addAlert(type, minute, label, meta, side, kind){
   else if (type === "bottle") icon = ICONS.bottle;
   else icon = ICONS.cardRect(kind || "yellow");
 
+  const labHTML = '<span class="lab-team">' + lead + '</span>' +
+    (evt ? ' <span class="lab-evt">' + evt + '</span>' : '');
   row.innerHTML =
     '<span class="ic">' + icon + '</span>' +
-    '<span class="body"><span class="lab">' + label + '</span>' +
+    '<span class="body"><span class="lab">' + labHTML + '</span>' +
     (meta ? '<span class="meta">' + meta + '</span>' : '') + '</span>' +
     '<span class="min">' + fmtMinute(minute) + '</span>';
 
@@ -1333,7 +1480,7 @@ function raiseBottle(minute, diff){
   els.bottleBannerText.textContent = "Bottle alert: " + text;
   els.bottleBanner.classList.remove("show"); void els.bottleBanner.offsetWidth;
   els.bottleBanner.classList.add("show");
-  addAlert("bottle", minute, "Bottle alert", text, game.fav);
+  addAlert("bottle", minute, "Bottle alert", "", text, game.fav);
   toast("Bottle alert: " + team);
 }
 function updateBottleStatus(diff){
@@ -1459,16 +1606,6 @@ function pushSupported(){
   return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }
 
-// Convert a base64url VAPID key into the Uint8Array applicationServerKey wants.
-function urlBase64ToUint8Array(base64String){
-  const padding = "=".repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const raw = atob(base64);
-  const out = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-  return out;
-}
-
 function currentFixtureId(){
   return replayFixtureId || (game && game.fixture && game.fixture.fixtureId) || "";
 }
@@ -1490,47 +1627,16 @@ async function postSubscription(sub){
   });
 }
 
+// Register the service worker so the app stays installable and any existing push
+// subscription keeps delivering. The manual subscribe button was removed to leave
+// a single alerts control (the red mute toggle) in the Live alerts header.
 async function registerServiceWorker(){
-  if (!pushSupported()){ els.subBtn.disabled = true; els.subBtnText.textContent = "No push"; return; }
+  if (!pushSupported()) return;
   try {
     pushState.reg = await navigator.serviceWorker.register("/sw.js");
     pushState.sub = await pushState.reg.pushManager.getSubscription();
-    syncSubButton();
   } catch (e){ console.warn("[Pitchside] service worker registration failed:", e); }
 }
-
-async function subscribeToPush(){
-  if (!pushSupported()){ toast("Push is not supported here"); return; }
-  if (pushState.sub){ toast("Alerts already on"); return; }
-  els.subBtn.disabled = true;
-  try {
-    if (!pushState.reg) await registerServiceWorker();
-    const perm = await Notification.requestPermission();
-    if (perm !== "granted"){ toast("Notifications blocked"); return; }
-    const key = (await (await fetch("/api/push/vapidPublicKey")).text()).trim();
-    if (!key){ toast("Push not configured on the server"); return; }
-    pushState.sub = await pushState.reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(key)
-    });
-    await postSubscription(pushState.sub);
-    syncSubButton();
-    toast("Alerts on. You can close the tab.");
-  } catch (e){
-    console.error("[Pitchside] push subscribe failed:", e);
-    toast("Could not enable alerts");
-  } finally {
-    els.subBtn.disabled = false;
-  }
-}
-
-function syncSubButton(){
-  const on = !!pushState.sub;
-  els.subBtnText.textContent = on ? "Alerts on" : "Notify me";
-  els.subBtn.classList.toggle("on", on);
-}
-
-els.subBtn.addEventListener("click", subscribeToPush);
 
 /* ----------------------------------------------------------------------------
    FAN ZONE
@@ -1622,7 +1728,39 @@ function fzHandle(msg){
     fzState.tally = msg.tally || fzState.tally;
     if (msg.entry) addPickFeed(msg.entry);
     fzRenderBars();
+  } else if (msg.type === "reaction"){
+    // Skip the echo of a reaction this client just sent (already animated on tap).
+    if (msg.rid && reactSeen.has(msg.rid)){ reactSeen.delete(msg.rid); return; }
+    spawnReaction(msg.icon);
   }
+}
+
+/* --- Live reactions: float an icon up over the pitch and share it with the room.
+   Sending and receiving both animate, deduped by a per-send nonce so the sender
+   does not see its own reaction twice. --- */
+const reactSeen = new Set();
+let reactSeq = 0;
+
+function spawnReaction(icon){
+  const svg = ICONS.react[icon];
+  if (!svg || !els.reactLayer) return;
+  const el = document.createElement("div");
+  el.className = "react-float";
+  el.style.left = (8 + Math.random() * 78) + "%";
+  el.innerHTML = svg;
+  els.reactLayer.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+  // Cap concurrent floaters so a burst cannot pile up.
+  while (els.reactLayer.children.length > 24) els.reactLayer.removeChild(els.reactLayer.firstChild);
+}
+
+function sendReaction(icon){
+  if (!ICONS.react[icon]) return;
+  const rid = "r" + Date.now().toString(36) + (reactSeq++);
+  reactSeen.add(rid);
+  if (reactSeen.size > 80){ for (const k of reactSeen){ reactSeen.delete(k); if (reactSeen.size <= 40) break; } }
+  spawnReaction(icon);                       // optimistic local animation on tap
+  fzSend({ type:"reaction", icon, rid });    // share over the existing socket
 }
 
 // Append a chat row. All user text goes through textContent, never innerHTML.
@@ -1773,13 +1911,188 @@ document.querySelectorAll(".fz-pick").forEach(btn => {
   });
 });
 
+/* ----------------------------------------------------------------------------
+   MATCHES SCREEN
+   The landing screen lists today and tomorrow's fixtures from /api/fixtures,
+   grouped Live, Upcoming, and Finished. Tapping a live or finished match opens
+   the match view (live for in-progress, replay for finished). Demo stays reachable
+   as a clearly labelled offline simulation. Team names render through textContent.
+---------------------------------------------------------------------------- */
+const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function showMatches(){
+  if (game && game.feed){ game.feed.stop(); game.feed = null; }
+  els.matchView.hidden = true;
+  els.matchesView.hidden = false;
+  loadFixtures();
+}
+function showMatchView(){
+  els.matchesView.hidden = true;
+  els.matchView.hidden = false;
+}
+
+async function loadFixtures(){
+  els.matchGroups.innerHTML = '<div class="matches-empty">Loading today and tomorrow\'s fixtures...</div>';
+  let list = [];
+  try {
+    const res = await fetch("/api/fixtures");
+    if (!res.ok) throw new Error("fixtures " + res.status);
+    list = await res.json();
+  } catch (e){
+    console.warn("[Pitchside] fixtures unavailable:", e);
+    els.matchGroups.innerHTML = '<div class="matches-empty">Fixtures are unavailable right now. You can still open the demo simulation above.</div>';
+    return;
+  }
+  renderFixtures(Array.isArray(list) ? list : []);
+}
+
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+
+// Keep today and tomorrow's fixtures, plus any live match regardless of clock drift.
+function withinTodayTomorrow(kickoff){
+  if (!kickoff) return false;
+  const t0 = startOfDay(new Date());
+  return kickoff >= t0 && kickoff < t0 + 2 * 86400000;
+}
+
+function kickoffTime(ms){
+  if (!ms) return "";
+  const d = new Date(ms);
+  return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+}
+function dayLabel(ms){
+  if (!ms) return "";
+  const a = startOfDay(new Date(ms)), t0 = startOfDay(new Date());
+  if (a === t0) return "Today";
+  if (a === t0 + 86400000) return "Tomorrow";
+  return new Date(ms).toLocaleDateString(undefined, { weekday:"short" });
+}
+function kickoffLabel(ms){
+  const t = kickoffTime(ms);
+  if (!t) return "";
+  const dl = dayLabel(ms);
+  return (dl ? dl + " " : "") + t;
+}
+
+function renderFixtures(list){
+  const fixtures = list.filter(f => f.status === "live" || withinTodayTomorrow(f.kickoff));
+  const groups = { live:[], upcoming:[], finished:[] };
+  for (const f of fixtures) (groups[f.status] || groups.upcoming).push(f);
+  groups.live.sort((a, b) => (a.kickoff || 0) - (b.kickoff || 0));
+  groups.upcoming.sort((a, b) => (a.kickoff || 0) - (b.kickoff || 0));
+  groups.finished.sort((a, b) => (b.kickoff || 0) - (a.kickoff || 0));
+
+  els.matchGroups.innerHTML = "";
+  let any = false;
+  for (const [key, label] of [["live","Live"], ["upcoming","Upcoming"], ["finished","Finished"]]){
+    const rows = groups[key];
+    if (!rows.length) continue;
+    any = true;
+    const sec = document.createElement("div");
+    sec.className = "mgroup " + key;
+    const head = document.createElement("div");
+    head.className = "mgroup-head";
+    const dot = document.createElement("span"); dot.className = "gdot";
+    head.appendChild(dot);
+    head.appendChild(document.createTextNode(label + " (" + rows.length + ")"));
+    sec.appendChild(head);
+    const listEl = document.createElement("div");
+    listEl.className = "mgroup-list";
+    for (const f of rows) listEl.appendChild(matchRow(f));
+    sec.appendChild(listEl);
+    els.matchGroups.appendChild(sec);
+  }
+  if (!any){
+    els.matchGroups.innerHTML = '<div class="matches-empty">No fixtures scheduled for today or tomorrow. Open the demo simulation above to explore Pitchside.</div>';
+  }
+}
+
+function matchRow(f){
+  const clickable = (f.status === "live" || f.status === "finished");
+  const row = document.createElement("button");
+  row.type = "button";
+  row.className = "matchrow " + (clickable ? "tap" : "flat");
+  if (!clickable) row.disabled = true;
+
+  const badge = document.createElement("span");
+  badge.className = "mr-badge " + f.status;
+  badge.textContent = f.status === "live" ? "Live"
+    : f.status === "finished" ? "FT"
+    : (kickoffTime(f.kickoff) || "Soon");
+
+  const main = document.createElement("span");
+  main.className = "mr-main";
+  const teams = document.createElement("span");
+  teams.className = "mr-teams";
+  const h = document.createElement("span"); h.textContent = f.home || "Home";
+  const vs = document.createElement("span"); vs.className = "vs"; vs.textContent = "v";
+  const a = document.createElement("span"); a.textContent = f.away || "Away";
+  teams.appendChild(h); teams.appendChild(vs); teams.appendChild(a);
+  const sub = document.createElement("span");
+  sub.className = "mr-sub";
+  sub.textContent = [f.competition || "Football", kickoffLabel(f.kickoff)].filter(Boolean).join(" · ");
+  main.appendChild(teams); main.appendChild(sub);
+
+  const right = document.createElement("span");
+  right.className = "mr-right";
+  if (typeof f.homeScore === "number" && typeof f.awayScore === "number"){
+    const sc = document.createElement("span");
+    sc.className = "mr-score";
+    sc.appendChild(document.createTextNode(String(f.homeScore)));
+    const sep = document.createElement("span"); sep.className = "sc-sep"; sep.textContent = ":";
+    sc.appendChild(sep);
+    sc.appendChild(document.createTextNode(String(f.awayScore)));
+    right.appendChild(sc);
+  }
+  if (clickable){
+    const chev = document.createElement("span"); chev.className = "mr-chev"; chev.innerHTML = CHEVRON;
+    right.appendChild(chev);
+  }
+  row.appendChild(badge); row.appendChild(main); row.appendChild(right);
+  if (clickable) row.addEventListener("click", () => openMatch(f));
+  return row;
+}
+
+// Open a real fixture: live mode for an in-progress match, replay for a finished one.
+function openMatch(f){
+  const fixture = {
+    compName: f.competition || "World Cup",
+    home: { name: f.home || "Home" },
+    away: { name: f.away || "Away" },
+    fixtureId: f.id
+  };
+  currentMode = (f.status === "live") ? "live" : "replay";
+  replayFixtureId = f.id || null;
+  syncModeButtons();
+  showMatchView();
+  startMatch(fixture);
+}
+
+// Open the offline simulation, clearly labelled as a demo.
+function openDemo(){
+  currentMode = "demo";
+  replayFixtureId = null;
+  syncModeButtons();
+  showMatchView();
+  startMatch(FIXTURES[0]);
+}
+
+els.backBtn.addEventListener("click", showMatches);
+els.openDemoBtn.addEventListener("click", openDemo);
+
+// Wire the live reaction buttons, painting their SVG icons.
+document.querySelectorAll(".reactbtn").forEach(btn => {
+  btn.innerHTML = ICONS.react[btn.dataset.react] || "";
+  btn.addEventListener("click", () => sendReaction(btn.dataset.react));
+});
+
 /* boot */
 syncModeButtons();
 syncMuteButton();
-startMatch(FIXTURES[0]);
 registerServiceWorker();
 if (fzState.name) fz.nameInput.value = fzState.name;
 fzApplyName();
+showMatches();   // land on the Matches screen
 </script>
 </body>
 </html>

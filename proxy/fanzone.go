@@ -100,6 +100,17 @@ type pickMsg struct {
 	Tally tallySnapshot `json:"tally"`
 }
 
+// reactionMsg is the ephemeral live reaction broadcast to the room. Reactions are
+// not stored: they animate over the pitch and are gone, so they never appear in
+// the join snapshot. rid is the sender's nonce echoed back so the originator can
+// skip its own reaction (it already animated optimistically on tap).
+type reactionMsg struct {
+	Type string `json:"type"` // "reaction"
+	Icon string `json:"icon"` // fire | clap | shock | sad
+	Rid  string `json:"rid"`
+	Name string `json:"name"`
+}
+
 // inbound is the single shape the client sends. type selects the action; name is
 // honoured on any message so a fan who sets a name after connecting is recognised.
 type inbound struct {
@@ -108,6 +119,8 @@ type inbound struct {
 	Text   string `json:"text"`
 	Market string `json:"market"`
 	Choice string `json:"choice"`
+	Icon   string `json:"icon"`
+	Rid    string `json:"rid"`
 }
 
 // fanClient is one connected browser. The reader runs in the handler goroutine,
@@ -229,7 +242,28 @@ func (c *fanClient) handleMessage(data []byte) {
 		c.room.addChat(c.displayName(), text)
 	case "pick":
 		c.room.addPick(c.displayName(), in.Market, in.Choice)
+	case "reaction":
+		icon := normalizeReaction(in.Icon)
+		if icon == "" {
+			return
+		}
+		c.room.addReaction(c.displayName(), icon, in.Rid)
 	}
+}
+
+// normalizeReaction accepts only the four known reaction icons, lower-cased.
+func normalizeReaction(s string) string {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "fire":
+		return "fire"
+	case "clap":
+		return "clap"
+	case "shock":
+		return "shock"
+	case "sad":
+		return "sad"
+	}
+	return ""
 }
 
 func (c *fanClient) displayName() string {
@@ -302,6 +336,16 @@ func (r *fanRoom) addPick(name, market, choice string) {
 	tally := r.tallyLocked()
 	r.mu.Unlock()
 	if b, err := json.Marshal(pickMsg{Type: "pick", Entry: e, Tally: tally}); err == nil {
+		r.broadcast(b)
+	}
+}
+
+// addReaction fans a live reaction out to everyone in the room, including the
+// sender (whose rid lets it dedupe its own optimistic animation). Reactions are
+// ephemeral, so nothing is stored.
+func (r *fanRoom) addReaction(name, icon, rid string) {
+	rid = cleanRunes(rid, 40)
+	if b, err := json.Marshal(reactionMsg{Type: "reaction", Icon: icon, Rid: rid, Name: name}); err == nil {
 		r.broadcast(b)
 	}
 }
