@@ -1130,19 +1130,36 @@
       gap: 12px;
     }
 
-    /* On mobile the panel scrolls with the page (pitch included). Only the score and
-       clock banner inside it pins to the top, see .matchcard below. On desktop the
-       whole panel becomes a sticky side column, see the min-width: 780px block. */
+    /* On mobile the panel scrolls with the page (pitch included). The compact score
+       and clock pill is lifted into a sticky bar instead, see .mscorebar below. On
+       desktop the whole panel becomes a sticky side column, see the min-width: 780px
+       block. */
     .matchpanel {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .matchcard {
+    /* Mobile only: a compact, sticky score and clock banner. The score pill (BRA 0:0
+       CRO with the minute) is relocated here by JS so it stays pinned at the top of the
+       viewport while the full match card, pitch, Fan Zone, and alerts scroll beneath it.
+       The bar is a direct child of .matchlayout so its sticky containing block spans the
+       whole scrolling view, not just the panel. Hidden on desktop. */
+    .mscorebar {
       position: sticky;
       top: 0;
-      z-index: 8;
+      z-index: 9;
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 7px;
+      background: var(--bg);
+    }
+
+    .mscorebar .pitchscore {
+      position: static;
+      transform: none;
+      top: auto;
+      left: auto;
     }
 
     .matchscroll {
@@ -2135,17 +2152,16 @@
         align-items: start;
       }
 
-      /* The whole panel sticks as a side column on desktop, so the inner card
-         does not need its own stickiness here. */
+      /* The whole panel sticks as a side column on desktop. */
       .matchpanel {
         position: sticky;
         top: 16px;
       }
 
-      .matchcard {
-        position: relative;
-        top: auto;
-        z-index: auto;
+      /* On desktop the score pill returns to the pitch as an overlay, so the mobile
+         sticky bar is not needed. */
+      .mscorebar {
+        display: none;
       }
 
       .matchscroll {
@@ -2221,6 +2237,7 @@
       </div>
 
       <div class="matchlayout">
+        <div class="mscorebar" id="mScoreBar" aria-label="Score and clock"></div>
         <div class="matchpanel">
           <div class="demonote" id="demoNote" hidden>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -4042,6 +4059,28 @@
       btn.innerHTML = ICONS.react[btn.dataset.react] || "";
       btn.addEventListener("click", () => sendReaction(btn.dataset.react));
     });
+
+    // Mobile sticky score bar: move the single compact score pill (#pitchScore) into a
+    // sticky banner on mobile so it stays pinned while the pitch and content scroll,
+    // and return it to the pitch as an overlay on desktop. One node, no duplicated
+    // score state, desktop two-column layout untouched.
+    (function () {
+      const pill = $("pitchScore");
+      const bar = $("mScoreBar");
+      if (!pill || !bar) return;
+      const pitchHome = pill.parentNode;        // the pitch, where the desktop overlay lives
+      const pitchAnchor = pill.nextElementSibling; // restore the exact overlay stacking order
+      const mq = window.matchMedia("(max-width: 779px)");
+      function placePill() {
+        if (mq.matches) {
+          if (pill.parentNode !== bar) bar.appendChild(pill);
+        } else if (pill.parentNode !== pitchHome) {
+          pitchHome.insertBefore(pill, pitchAnchor);
+        }
+      }
+      placePill();
+      mq.addEventListener("change", placePill);
+    })();
 
     /* boot */
     syncMuteButton();
