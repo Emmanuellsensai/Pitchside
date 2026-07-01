@@ -263,6 +263,89 @@
   .card-rect.yellow{background:var(--yellow)}
   .card-rect.red{background:var(--red)}
 
+  /* Fan Zone */
+  .fanzone h2 .fz-conn{
+    margin-left:auto;font-family:var(--font-mono);font-size:10.5px;font-weight:400;
+    color:var(--muted);display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;
+  }
+  .fanzone h2 .fz-conn .d{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+  .fanzone h2 .fz-conn.on .d{background:var(--green)}
+  .fz-tabs{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:999px;padding:4px;margin-bottom:12px}
+  .fz-tab{
+    flex:1;appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;
+    font-family:var(--font-body);font-weight:700;font-size:12px;letter-spacing:0.03em;text-transform:uppercase;
+    padding:8px;border-radius:999px;transition:color .12s ease, background .12s ease;
+  }
+  .fz-tab:hover{color:var(--text)}
+  .fz-tab.sel{background:var(--brand);color:var(--brand-ink);box-shadow:0 4px 12px -4px rgba(228,0,43,.7)}
+  .fz-tab:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
+
+  .fz-name{display:flex;gap:8px;margin-bottom:10px}
+  .fz-name input{
+    flex:1;min-width:0;background:var(--surface-2);border:1.5px solid var(--line);border-radius:10px;
+    color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 11px;
+  }
+  .fz-name input:focus{outline:none;border-color:var(--brand)}
+  .fz-name button, .fz-send{
+    appearance:none;border:0;cursor:pointer;background:var(--brand);color:var(--brand-ink);
+    font-family:var(--font-body);font-weight:700;font-size:13px;border-radius:10px;padding:9px 14px;
+    transition:background .12s ease;
+  }
+  .fz-name button:hover, .fz-send:hover{background:var(--brand-press)}
+  .fz-asuser{font-size:12px;color:var(--muted);margin-bottom:10px;font-family:var(--font-mono)}
+  .fz-asuser b{color:var(--text);font-weight:600}
+
+  .fz-msgs{
+    display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:12px;
+    background:var(--surface-2);padding:10px;height:220px;overflow:auto;margin-bottom:10px;
+  }
+  .fz-msgs .empty{color:var(--muted);font-size:12.5px;text-align:center;margin:auto;padding:16px 0}
+  .fz-msg{font-size:13px;line-height:1.35;animation:slidein .25s ease}
+  .fz-msg .who{font-weight:700;color:var(--brand);margin-right:6px}
+  .fz-msg .when{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-left:6px}
+  .fz-msg .body{color:var(--text);word-break:break-word}
+
+  .fz-compose{display:flex;gap:8px}
+  .fz-compose input{
+    flex:1;min-width:0;background:var(--surface-2);border:1.5px solid var(--line);border-radius:10px;
+    color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;
+  }
+  .fz-compose input:focus{outline:none;border-color:var(--brand)}
+  .fz-send{display:inline-flex;align-items:center;justify-content:center;padding:10px 13px}
+  .fz-send svg{width:16px;height:16px;display:block}
+  .fz-send:disabled, .fz-name button:disabled{opacity:.5;cursor:default}
+
+  .fz-market{margin-bottom:14px}
+  .fz-mhead{font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.06em;margin:0 2px 8px}
+  .fz-picks{display:flex;gap:6px;margin-bottom:10px}
+  .fz-pick{
+    flex:1;min-width:0;appearance:none;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);
+    border-radius:10px;padding:9px 6px;font-family:var(--font-body);font-weight:600;font-size:12.5px;cursor:pointer;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:border-color .12s ease, background .12s ease;
+  }
+  .fz-pick:hover{border-color:#3a4651}
+  .fz-pick.mine{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 16%, var(--surface-2))}
+  .fz-pick:active{background:var(--brand-press);color:var(--brand-ink)}
+  .fz-pick:focus-visible{outline:3px solid #5b8cff;outline-offset:2px}
+
+  .fz-bars{display:flex;flex-direction:column;gap:7px}
+  .fz-bar{display:grid;grid-template-columns:64px 1fr 38px;align-items:center;gap:8px}
+  .fz-bar .bl{font-size:11.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fz-bar .bt{height:9px;border-radius:999px;background:var(--surface-3);overflow:hidden}
+  .fz-bar .bf{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--brand-press));
+    width:0;transition:width .4s ease}
+  .fz-bar.away .bf{background:linear-gradient(90deg,#ECEFF2,#AEB6BE)}
+  .fz-bar.draw .bf{background:linear-gradient(90deg,#8B95A0,#5c6670)}
+  .fz-bar .bp{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-align:right}
+
+  .fz-feed{margin-top:6px;border-top:1px solid var(--line);padding-top:10px;
+    display:flex;flex-direction:column;gap:6px;max-height:120px;overflow:auto}
+  .fz-feed .pk{font-size:12px;color:var(--muted);animation:slidein .25s ease}
+  .fz-feed .pk b{color:var(--text);font-weight:600}
+  .fz-feed .pk .tm{color:var(--brand);font-weight:600}
+
   .credit{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--muted);padding:2px 2px 0}
   .conn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono)}
   .conn .d{width:7px;height:7px;border-radius:50%;background:var(--muted)}
@@ -383,6 +466,57 @@
       </span>
     </div>
     <div class="feed" id="feed"><div class="empty">Goals, corners and cards will appear here as they happen.</div></div>
+
+    <section class="panel fanzone" aria-label="Fan Zone">
+      <h2>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5 h16 a1 1 0 0 1 1 1 v9 a1 1 0 0 1 -1 1 h-9 l-4 4 v-4 H4 a1 1 0 0 1 -1 -1 V6 a1 1 0 0 1 1 -1 Z" fill="none" stroke="var(--brand)" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Fan Zone
+        <span class="fz-conn" id="fzConn"><span class="d"></span><span id="fzConnText">offline</span></span>
+      </h2>
+      <div class="sub">Chat the match and call it with other fans. Sentiment only, no stakes.</div>
+
+      <div class="fz-tabs" role="tablist" aria-label="Fan Zone tabs">
+        <button class="fz-tab sel" data-fz="chat" role="tab">Chat</button>
+        <button class="fz-tab" data-fz="picks" role="tab">Predictions</button>
+      </div>
+
+      <div class="fz-name" id="fzNameRow">
+        <input id="fzNameInput" placeholder="Pick a name to join" maxlength="24" autocomplete="off" aria-label="Display name">
+        <button id="fzNameSet" type="button">Join</button>
+      </div>
+      <div class="fz-asuser" id="fzAsUser" hidden>Joined as <b id="fzWho"></b></div>
+
+      <div class="fz-pane" id="fzPaneChat">
+        <div class="fz-msgs" id="fzMsgs"><div class="empty">No messages yet. Say hello to the room.</div></div>
+        <form class="fz-compose" id="fzForm" autocomplete="off">
+          <input id="fzInput" placeholder="Message the room" maxlength="240" aria-label="Message">
+          <button class="fz-send" type="submit" aria-label="Send message">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 L20 4 L13 20 L11 13 Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="fz-pane" id="fzPanePicks" hidden>
+        <div class="fz-market">
+          <div class="fz-mhead">Match winner</div>
+          <div class="fz-picks">
+            <button class="fz-pick" data-market="winner" data-choice="home" id="pkWinHome">Home</button>
+            <button class="fz-pick" data-market="winner" data-choice="draw">Draw</button>
+            <button class="fz-pick" data-market="winner" data-choice="away" id="pkWinAway">Away</button>
+          </div>
+          <div class="fz-bars" id="barsWinner"></div>
+        </div>
+        <div class="fz-market">
+          <div class="fz-mhead">Most corners</div>
+          <div class="fz-picks">
+            <button class="fz-pick" data-market="corners" data-choice="home" id="pkCorHome">Home</button>
+            <button class="fz-pick" data-market="corners" data-choice="away" id="pkCorAway">Away</button>
+          </div>
+          <div class="fz-bars" id="barsCorners"></div>
+        </div>
+        <div class="fz-feed" id="fzPickFeed"></div>
+      </div>
+    </section>
 
     <div class="credit">
       <span class="conn" id="conn"><span class="d"></span><span id="connText">Demo match</span></span>
@@ -832,6 +966,7 @@ function renderTeams(fixture){
   els.aName.textContent = fixture.away.name;
   els.favHomeName.textContent = fixture.home.name;
   els.favAwayName.textContent = fixture.away.name;
+  fzRenderTeams(fixture);
 }
 
 function startMatch(fixture){
@@ -863,6 +998,11 @@ function startMatch(fixture){
   wireEvents(bus, fixture, currentMode);
 
   game.feed = makeFeed(bus, fixture);
+
+  // Join (or move to) the Fan Zone room for this fixture. The room key is the
+  // fixtureId in replay and live, or "demo" offline, so everyone watching the
+  // same match shares one chat and one prediction board.
+  joinFanZone();
 
   // In demo the corners are synthetic and only arrive when requested, so prime
   // the pump. Replay and live emit corners straight from the parser.
@@ -1198,10 +1338,253 @@ function syncSubButton(){
 
 els.subBtn.addEventListener("click", subscribeToPush);
 
+/* ----------------------------------------------------------------------------
+   FAN ZONE
+   A live chat and a fan-sentiment prediction board, one WebSocket room per
+   fixtureId, served by the proxy. Predictions are sentiment only, no stakes and
+   no money. This is separate from the scores bus and never touches the data layer.
+---------------------------------------------------------------------------- */
+const fz = {
+  conn:$("fzConn"), connText:$("fzConnText"),
+  nameRow:$("fzNameRow"), nameInput:$("fzNameInput"), nameSet:$("fzNameSet"),
+  asUser:$("fzAsUser"), who:$("fzWho"),
+  paneChat:$("fzPaneChat"), panePicks:$("fzPanePicks"),
+  msgs:$("fzMsgs"), form:$("fzForm"), input:$("fzInput"),
+  barsWinner:$("barsWinner"), barsCorners:$("barsCorners"), pickFeed:$("fzPickFeed"),
+  pkWinHome:$("pkWinHome"), pkWinAway:$("pkWinAway"), pkCorHome:$("pkCorHome"), pkCorAway:$("pkCorAway")
+};
+
+const fzState = {
+  ws:null, room:null, reconnect:null,
+  name:(localStorage.getItem("pitchside.name") || ""),
+  tally:{ winner:{home:0,draw:0,away:0}, corners:{home:0,away:0} },
+  mine:{}   // this fan's own picks per market, to highlight their button
+};
+
+function fzRoomId(){ return currentFixtureId() || "demo"; }
+
+function fzSetConn(on){
+  fz.conn.classList.toggle("on", on);
+  fz.connText.textContent = on ? "live" : "offline";
+}
+
+// Open (or reopen) the socket for the current room. Called whenever the match,
+// and therefore the room, changes.
+function joinFanZone(){
+  const room = fzRoomId();
+  if (room === fzState.room && fzState.ws && fzState.ws.readyState <= 1) return;
+  fzState.room = room;
+  fzConnect();
+}
+
+function fzConnect(){
+  if (fzState.reconnect){ clearTimeout(fzState.reconnect); fzState.reconnect = null; }
+  if (fzState.ws){ try { fzState.ws.onclose = null; fzState.ws.close(); } catch(e){} fzState.ws = null; }
+
+  // Reset the board for the new room. The server replays its backlog on connect.
+  fzState.mine = {};
+  fzState.tally = { winner:{home:0,draw:0,away:0}, corners:{home:0,away:0} };
+  fz.msgs.innerHTML = '<div class="empty">No messages yet. Say hello to the room.</div>';
+  fz.pickFeed.innerHTML = "";
+  syncMyPicks();
+  fzRenderBars();
+
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const url = proto + "//" + location.host + "/ws?fixtureId=" + encodeURIComponent(fzState.room) +
+              "&name=" + encodeURIComponent(fzState.name || "");
+  let ws;
+  try { ws = new WebSocket(url); } catch(e){ scheduleFzReconnect(); return; }
+  fzState.ws = ws;
+  ws.onopen = () => fzSetConn(true);
+  ws.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch(e){ return; } fzHandle(m); };
+  ws.onclose = () => { fzSetConn(false); if (fzState.ws === ws){ fzState.ws = null; scheduleFzReconnect(); } };
+  ws.onerror = () => { try { ws.close(); } catch(e){} };
+}
+
+function scheduleFzReconnect(){
+  if (fzState.reconnect) return;
+  fzState.reconnect = setTimeout(() => { fzState.reconnect = null; fzConnect(); }, 2500);
+}
+
+function fzSend(obj){
+  if (!fzState.ws || fzState.ws.readyState !== 1) return false;
+  obj.name = fzState.name || "";
+  try { fzState.ws.send(JSON.stringify(obj)); return true; } catch(e){ return false; }
+}
+
+function fzHandle(msg){
+  if (!msg || !msg.type) return;
+  if (msg.type === "init"){
+    fzState.tally = msg.tally || fzState.tally;
+    fz.msgs.innerHTML = "";
+    (msg.chat || []).forEach(addChatMsg);
+    if (!fz.msgs.children.length) fz.msgs.innerHTML = '<div class="empty">No messages yet. Say hello to the room.</div>';
+    fz.pickFeed.innerHTML = "";
+    (msg.picks || []).forEach(addPickFeed);
+    fzRenderBars();
+  } else if (msg.type === "chat"){
+    addChatMsg(msg);
+  } else if (msg.type === "pick"){
+    fzState.tally = msg.tally || fzState.tally;
+    if (msg.entry) addPickFeed(msg.entry);
+    fzRenderBars();
+  }
+}
+
+// Append a chat row. All user text goes through textContent, never innerHTML.
+function addChatMsg(m){
+  const empty = fz.msgs.querySelector(".empty"); if (empty) empty.remove();
+  const atBottom = fz.msgs.scrollHeight - fz.msgs.scrollTop - fz.msgs.clientHeight < 40;
+  const row = document.createElement("div");
+  row.className = "fz-msg";
+  const who = document.createElement("span"); who.className = "who"; who.textContent = m.name || "Someone";
+  const body = document.createElement("span"); body.className = "body"; body.textContent = m.text || "";
+  const when = document.createElement("span"); when.className = "when"; when.textContent = fzTime(m.ts);
+  row.appendChild(who); row.appendChild(body); row.appendChild(when);
+  fz.msgs.appendChild(row);
+  while (fz.msgs.children.length > 80) fz.msgs.removeChild(fz.msgs.firstChild);
+  if (atBottom) fz.msgs.scrollTop = fz.msgs.scrollHeight;
+}
+
+// Prepend a recent-pick line, like "Ade backs Brazil to win". Built from nodes so
+// names stay text, not markup.
+function addPickFeed(e){
+  const row = document.createElement("div");
+  row.className = "pk";
+  const who = document.createElement("b"); who.textContent = e.name || "Someone";
+  row.appendChild(who);
+  if (e.market === "winner" && e.choice === "draw"){
+    row.appendChild(document.createTextNode(" backs the draw"));
+  } else {
+    const verb = (e.market === "winner") ? " backs " : " tips ";
+    const tail = (e.market === "winner") ? " to win" : " for corners";
+    const tm = document.createElement("span"); tm.className = "tm"; tm.textContent = fzChoiceTeam(e.choice);
+    row.appendChild(document.createTextNode(verb));
+    row.appendChild(tm);
+    row.appendChild(document.createTextNode(tail));
+  }
+  fz.pickFeed.insertBefore(row, fz.pickFeed.firstChild);
+  while (fz.pickFeed.children.length > 24) fz.pickFeed.removeChild(fz.pickFeed.lastChild);
+}
+
+function fzChoiceTeam(choice){
+  if (!game || !game.fixture) return choice;
+  return choice === "home" ? game.fixture.home.name : game.fixture.away.name;
+}
+
+function fzRenderBars(){
+  const w = fzState.tally.winner || {home:0,draw:0,away:0};
+  renderBarSet(fz.barsWinner, [
+    { cls:"home", label: teamLabelShort("home"), n: w.home||0 },
+    { cls:"draw", label: "Draw", n: w.draw||0 },
+    { cls:"away", label: teamLabelShort("away"), n: w.away||0 }
+  ]);
+  const c = fzState.tally.corners || {home:0,away:0};
+  renderBarSet(fz.barsCorners, [
+    { cls:"home", label: teamLabelShort("home"), n: c.home||0 },
+    { cls:"away", label: teamLabelShort("away"), n: c.away||0 }
+  ]);
+}
+
+function renderBarSet(container, rows){
+  const total = rows.reduce((s,r) => s + r.n, 0);
+  container.innerHTML = "";
+  for (const r of rows){
+    const pct = total ? Math.round(r.n / total * 100) : 0;
+    const el = document.createElement("div");
+    el.className = "fz-bar " + r.cls;
+    const bl = document.createElement("div"); bl.className = "bl"; bl.textContent = r.label;
+    const bt = document.createElement("div"); bt.className = "bt";
+    const bf = document.createElement("div"); bf.className = "bf"; bf.style.width = pct + "%";
+    bt.appendChild(bf);
+    const bp = document.createElement("div"); bp.className = "bp"; bp.textContent = pct + "%";
+    el.appendChild(bl); el.appendChild(bt); el.appendChild(bp);
+    container.appendChild(el);
+  }
+}
+
+function teamLabelShort(side){
+  const n = (game && game.fixture) ? (side === "home" ? game.fixture.home.name : game.fixture.away.name) : "";
+  return n || (side === "home" ? "Home" : "Away");
+}
+
+function fzTime(ts){
+  if (!ts) return "";
+  const d = new Date(ts);
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+
+// Keep the prediction button labels in step with the current fixture.
+function fzRenderTeams(fixture){
+  if (fz.pkWinHome) fz.pkWinHome.textContent = fixture.home.name;
+  if (fz.pkWinAway) fz.pkWinAway.textContent = fixture.away.name;
+  if (fz.pkCorHome) fz.pkCorHome.textContent = fixture.home.name;
+  if (fz.pkCorAway) fz.pkCorAway.textContent = fixture.away.name;
+  fzRenderBars();
+}
+
+function fzHasName(){ return !!fzState.name; }
+
+function fzApplyName(){
+  const has = fzHasName();
+  fz.nameRow.hidden = has;
+  fz.asUser.hidden = !has;
+  if (has) fz.who.textContent = fzState.name;
+  fz.input.disabled = !has;
+}
+
+function fzSetName(){
+  const n = (fz.nameInput.value || "").trim().slice(0, 24);
+  if (!n){ fz.nameInput.focus(); return; }
+  fzState.name = n;
+  try { localStorage.setItem("pitchside.name", n); } catch(e){}
+  fzApplyName();
+  fz.input.focus();
+}
+
+function syncMyPicks(){
+  document.querySelectorAll(".fz-pick").forEach(btn => {
+    btn.classList.toggle("mine", fzState.mine[btn.dataset.market] === btn.dataset.choice);
+  });
+}
+
+function switchFzTab(name){
+  document.querySelectorAll(".fz-tab").forEach(b => b.classList.toggle("sel", b.dataset.fz === name));
+  fz.paneChat.hidden = name !== "chat";
+  fz.panePicks.hidden = name !== "picks";
+}
+
+/* Fan Zone events */
+document.querySelectorAll(".fz-tab").forEach(b => b.addEventListener("click", () => switchFzTab(b.dataset.fz)));
+fz.nameSet.addEventListener("click", fzSetName);
+fz.nameInput.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); fzSetName(); } });
+
+fz.form.addEventListener("submit", e => {
+  e.preventDefault();
+  if (!fzHasName()){ toast("Pick a name to join the chat"); fz.nameInput.focus(); return; }
+  const text = (fz.input.value || "").trim();
+  if (!text) return;
+  if (fzSend({ type:"chat", text })) fz.input.value = "";
+  else toast("Fan Zone is reconnecting");
+});
+
+document.querySelectorAll(".fz-pick").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (!fzHasName()){ toast("Pick a name to join in"); switchFzTab("chat"); fz.nameInput.focus(); return; }
+    const market = btn.dataset.market, choice = btn.dataset.choice;
+    if (fzSend({ type:"pick", market, choice })){
+      fzState.mine[market] = choice;
+      syncMyPicks();
+    } else toast("Fan Zone is reconnecting");
+  });
+});
+
 /* boot */
 syncModeButtons();
 startMatch(FIXTURES[0]);
 registerServiceWorker();
+if (fzState.name) fz.nameInput.value = fzState.name;
+fzApplyName();
 </script>
 </body>
 </html>

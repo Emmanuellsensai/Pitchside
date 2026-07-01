@@ -88,12 +88,17 @@ func main() {
 	hub := newPushHub()
 	go hub.runWatcher(cfg)
 
+	// Fan Zone: live chat and a fan-sentiment prediction board, one room per
+	// fixtureId. In-memory only, separate from the scores data layer.
+	fan := newFanHub()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/stream/scores", cfg.handleStream)
 	mux.HandleFunc("GET /api/scores/historical/{fixtureId}", cfg.handleHistorical)
 	mux.HandleFunc("GET /api/fixtures/snapshot", cfg.handleSnapshot)
 	mux.HandleFunc("GET /api/push/vapidPublicKey", hub.handleVapidKey)
 	mux.HandleFunc("POST /api/push/subscribe", hub.handleSubscribe)
+	mux.HandleFunc("GET /ws", fan.handleWS)
 	mux.Handle("/", cfg.staticHandler())
 
 	addr := ":" + cfg.Port

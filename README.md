@@ -86,8 +86,15 @@ Routes:
 GET /api/stream/scores              SSE relay of the upstream scores stream
 GET /api/scores/historical/{id}     JSON proxy of one fixture's history
 GET /api/fixtures/snapshot          JSON proxy of the fixtures list (team names)
+GET /api/push/vapidPublicKey        VAPID public key for web push subscriptions
+POST /api/push/subscribe            stores a browser push subscription (in memory)
+GET /ws?fixtureId=&name=            Fan Zone WebSocket, one room per fixture
 GET /  and static                   serves ../web, frontend at root
 ```
+
+The Fan Zone is a live chat plus a fan-sentiment prediction board (picks, no
+stakes and no money), one room per fixtureId, held in memory only. It runs
+alongside the scores routes and does not touch the data layer.
 
 Open http://localhost:8080 and use the mode switch (demo / replay / live):
 
