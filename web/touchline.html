@@ -598,6 +598,65 @@ function connectLive(bus, fixture, cfg){
 /* --- Replay feed: GET the historical array for one fixture, then replay it in
    order with a short delay so the game plays exactly as if live. This is what
    the demo video uses. --- */
+/* --- Replay display metadata. The historical score events carry participant
+   ids but not names, so the real teams are pulled from the fixtures snapshot
+   (same origin, through the proxy) to label the replay. This is display only:
+   nothing here reaches the score parser or the game logic. --- */
+const TEAM_FLAGS = {
+  "usa":"🇺🇸","united states":"🇺🇸",
+  "bosnia & herzegovina":"🇧🇦","bosnia and herzegovina":"🇧🇦",
+  "netherlands":"🇳🇱","morocco":"🇲🇦","brazil":"🇧🇷","japan":"🇯🇵",
+  "south africa":"🇿🇦","canada":"🇨🇦","jordan":"🇯🇴","argentina":"🇦🇷",
+  "algeria":"🇩🇿","austria":"🇦🇹","colombia":"🇨🇴","portugal":"🇵🇹",
+  "congo dr":"🇨🇩","dr congo":"🇨🇩","uzbekistan":"🇺🇿","croatia":"🇭🇷",
+  "ghana":"🇬🇭","panama":"🇵🇦","england":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","egypt":"🇪🇬","iran":"🇮🇷",
+  "new zealand":"🇳🇿","belgium":"🇧🇪","cape verde":"🇨🇻","saudi arabia":"🇸🇦",
+  "uruguay":"🇺🇾","spain":"🇪🇸","norway":"🇳🇴","france":"🇫🇷","senegal":"🇸🇳",
+  "iraq":"🇮🇶","paraguay":"🇵🇾","australia":"🇦🇺",
+  "turkey":"🇹🇷","türkiye":"🇹🇷","turkiye":"🇹🇷",
+  "mexico":"🇲🇽","nigeria":"🇳🇬","germany":"🇩🇪","italy":"🇮🇹",
+  "south korea":"🇰🇷","korea republic":"🇰🇷","switzerland":"🇨🇭","denmark":"🇩🇰",
+  "poland":"🇵🇱","qatar":"🇶🇦","ecuador":"🇪🇨","cameroon":"🇨🇲","tunisia":"🇹🇳",
+  "serbia":"🇷🇸","wales":"🏴󠁧󠁢󠁷󠁬󠁳󠁿","scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿"
+};
+function flagFor(name){
+  if (!name) return "🏳️";
+  return TEAM_FLAGS[String(name).trim().toLowerCase()] || "🏳️";
+}
+
+async function fetchFixtureMeta(fixtureId){
+  const res = await fetch("/api/fixtures/snapshot");
+  if (!res.ok) throw new Error("snapshot " + res.status);
+  const body = await res.json();
+  const list = Array.isArray(body) ? body : (body.fixtures || body.data || []);
+  const idOf = f => f.FixtureId ?? f.fixture_id ?? f.fixtureId ?? f.id;
+  return list.find(f => String(idOf(f)) === String(fixtureId)) || null;
+}
+
+// Repaint the match shell from the fixture object (teams, flags, competition).
+function paintFixture(fixture){
+  els.comp.textContent = fixture.compName;
+  els.hName.textContent = fixture.home.name; els.aName.textContent = fixture.away.name;
+  els.hFlag.textContent = fixture.home.flag; els.aFlag.textContent = fixture.away.flag;
+  els.pfHome.textContent = fixture.home.flag; els.pfAway.textContent = fixture.away.flag;
+  els.plHome.textContent = fixture.home.name; els.plAway.textContent = fixture.away.name;
+}
+
+// Overlay the real fixture metadata onto the displayed fixture, in place, so the
+// goal tick text (which reads fixture.home.name) also shows the real teams.
+function applyFixtureMeta(fixture, meta){
+  const p1 = meta.Participant1 ?? meta.participant1;
+  const p2 = meta.Participant2 ?? meta.participant2;
+  const p1Home = (meta.Participant1IsHome ?? meta.participant1_is_home) !== false;
+  const homeName = p1Home ? p1 : p2;
+  const awayName = p1Home ? p2 : p1;
+  const comp = meta.Competition ?? meta.competition;
+  if (homeName){ fixture.home.name = homeName; fixture.home.flag = flagFor(homeName); }
+  if (awayName){ fixture.away.name = awayName; fixture.away.flag = flagFor(awayName); }
+  if (comp) fixture.compName = comp;
+  paintFixture(fixture);
+}
+
 function connectReplay(bus, fixture, cfg){
   cfg = cfg || {};
   bus.emit("match", fixture);
@@ -606,6 +665,13 @@ function connectReplay(bus, fixture, cfg){
 
   async function run(){
     if (!cfg.fixtureId) throw new Error("replay needs a fixtureId");
+    // Display only: label the replay with the real teams and flags before the
+    // score events start. Best effort, a failure leaves the placeholder shell.
+    try {
+      const meta = await fetchFixtureMeta(cfg.fixtureId);
+      if (meta && !stopped) applyFixtureMeta(fixture, meta);
+    } catch (e) { console.warn("[Touchline] fixture metadata unavailable:", e); }
+
     const res = await fetch("/api/scores/historical/" + encodeURIComponent(cfg.fixtureId));
     if (!res.ok) throw new Error("Historical failed: " + res.status);
     const body = await res.json();

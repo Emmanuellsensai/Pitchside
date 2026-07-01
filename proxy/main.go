@@ -86,6 +86,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/stream/scores", cfg.handleStream)
 	mux.HandleFunc("GET /api/scores/historical/{fixtureId}", cfg.handleHistorical)
+	mux.HandleFunc("GET /api/fixtures/snapshot", cfg.handleSnapshot)
 	mux.Handle("/", cfg.staticHandler())
 
 	addr := ":" + cfg.Port
@@ -165,8 +166,20 @@ func (c Config) handleHistorical(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing fixtureId", http.StatusBadRequest)
 		return
 	}
+	c.proxyGet(w, r, "/api/scores/historical/"+fixtureID)
+}
 
-	upReq, err := http.NewRequestWithContext(r.Context(), http.MethodGet, c.Base+"/api/scores/historical/"+fixtureID, nil)
+// handleSnapshot proxies the fixtures snapshot, the list of bundled fixtures with
+// team names and kickoff times. The browser uses it to label a replay with the
+// real teams. Returns the JSON as-is, attaching the token server side.
+func (c Config) handleSnapshot(w http.ResponseWriter, r *http.Request) {
+	c.proxyGet(w, r, "/api/fixtures/snapshot")
+}
+
+// proxyGet performs a GET against the upstream path with the token headers and
+// returns the JSON body verbatim. Shared by the historical and snapshot routes.
+func (c Config) proxyGet(w http.ResponseWriter, r *http.Request, upstreamPath string) {
+	upReq, err := http.NewRequestWithContext(r.Context(), http.MethodGet, c.Base+upstreamPath, nil)
 	if err != nil {
 		http.Error(w, "bad upstream request", http.StatusInternalServerError)
 		return
