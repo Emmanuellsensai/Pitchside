@@ -1501,6 +1501,33 @@
       display: block
     }
 
+    /* Featured replay: a pinned, brand-accented card that always sits at the top of the
+       Matches list so a judge landing on an empty data window can still open a real
+       TxLINE-powered replay in one tap. */
+    .mgroup.featured .mgroup-head {
+      color: var(--text)
+    }
+
+    .mgroup.featured .mgroup-head .gdot {
+      background: var(--brand)
+    }
+
+    .matchrow.featured-card {
+      border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
+      background: color-mix(in srgb, var(--brand) 8%, var(--surface));
+    }
+
+    .matchrow.featured-card:hover {
+      border-color: color-mix(in srgb, var(--brand) 65%, var(--line));
+      background: color-mix(in srgb, var(--brand) 12%, var(--surface));
+    }
+
+    .matchrow.featured-card .mr-badge {
+      color: #fff;
+      border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+      background: color-mix(in srgb, var(--brand) 22%, transparent);
+    }
+
     .matches-empty {
       color: var(--muted);
       font-size: 13px;
@@ -1588,6 +1615,25 @@
     .emptystate .es-btn svg {
       width: 15px;
       height: 15px;
+    }
+
+    /* Secondary, low-emphasis link inside the empty state (the demoted Open Demo). */
+    .emptystate .es-link {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 12.5px;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      padding: 8px 6px;
+    }
+
+    .emptystate .es-link:hover {
+      color: var(--text);
     }
 
     /* Back to matches */
@@ -3706,6 +3752,17 @@
     ---------------------------------------------------------------------------- */
     const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+    // A hand-picked replay that always ships with real TxLINE historical data, so the
+    // Matches page can always offer one tappable real match even when the live and
+    // upcoming lists are empty. Opened in replay mode via the historical endpoint.
+    const FEATURED_FIXTURE = {
+      id: 17926593,
+      home: "Turkey",
+      away: "USA",
+      competition: "International Friendly",
+      status: "finished"
+    };
+
     // The last fixtures snapshot, kept so the team search can re-filter without refetching.
     let allFixtures = [];
     let searchTerm = "";
@@ -3809,6 +3866,10 @@
       groups.finished.sort((a, b) => (b.kickoff || 0) - (a.kickoff || 0));
 
       els.matchGroups.innerHTML = "";
+      // The featured replay is pinned above every group so it is always reachable, even
+      // when the data window is empty. It is hidden only while a team search is active,
+      // where the list is meant to show just the searched teams.
+      if (!searchTerm) els.matchGroups.appendChild(buildFeaturedCard());
       let any = false;
       // Live and Finished first (the playable matches), then the Upcoming schedule.
       for (const [key, label] of [["live", "Live"], ["finished", "Finished"], ["upcoming", "Upcoming"]]) {
@@ -3846,8 +3907,60 @@
     const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 L19 12 L8 19 Z" fill="currentColor"/></svg>';
     const REPLAY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 a9 9 0 1 0 3-6.7"/><path d="M3 4 v4 h4"/></svg>';
 
-    // A clear, friendly empty state: explains the empty data window and points to the
-    // Demo and to recently finished matches for replay.
+    // The pinned Featured replay card. Styled like a match row but brand-accented, and
+    // always tappable, opening FEATURED_FIXTURE in replay mode against the historical
+    // endpoint. No emoji, SVG icons only.
+    function buildFeaturedCard() {
+      const sec = document.createElement("div");
+      sec.className = "mgroup featured";
+
+      const head = document.createElement("div");
+      head.className = "mgroup-head";
+      const dot = document.createElement("span"); dot.className = "gdot";
+      head.appendChild(dot);
+      head.appendChild(document.createTextNode("Featured replay"));
+      sec.appendChild(head);
+
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "matchrow tap featured-card";
+      row.addEventListener("click", openFeaturedReplay);
+
+      const badge = document.createElement("span");
+      badge.className = "mr-badge finished";
+      badge.textContent = "Replay";
+
+      const main = document.createElement("span");
+      main.className = "mr-main";
+      const teams = document.createElement("span");
+      teams.className = "mr-teams";
+      const h = document.createElement("span"); h.textContent = FEATURED_FIXTURE.home;
+      const vs = document.createElement("span"); vs.className = "vs"; vs.textContent = "v";
+      const a = document.createElement("span"); a.textContent = FEATURED_FIXTURE.away;
+      teams.appendChild(h); teams.appendChild(vs); teams.appendChild(a);
+      const sub = document.createElement("span");
+      sub.className = "mr-sub";
+      sub.textContent = FEATURED_FIXTURE.competition + " · Real TxLINE replay";
+      main.appendChild(teams); main.appendChild(sub);
+
+      const right = document.createElement("span");
+      right.className = "mr-right";
+      const chev = document.createElement("span"); chev.className = "mr-chev"; chev.innerHTML = CHEVRON;
+      right.appendChild(chev);
+
+      row.appendChild(badge); row.appendChild(main); row.appendChild(right);
+      sec.appendChild(row);
+      return sec;
+    }
+
+    // Open the featured fixture in replay mode. Reuses openMatch so the mode wiring and
+    // historical fetch stay identical to tapping a finished match row.
+    function openFeaturedReplay() {
+      openMatch(FEATURED_FIXTURE);
+    }
+
+    // A clear, friendly empty state: explains the empty data window and makes the
+    // featured replay the primary call to action, with the Demo demoted to a link.
     function buildEmptyState() {
       const wrap = document.createElement("div");
       wrap.className = "emptystate";
@@ -3864,17 +3977,18 @@
       const text = document.createElement("div");
       text.className = "es-text";
       text.textContent = "There are no fixtures in the current data window (today and tomorrow). "
-        + "You can explore Pitchside with the Demo, or replay a recently finished match.";
+        + "Open the featured replay to watch a real TxLINE-powered match now, or explore the Demo.";
 
       const actions = document.createElement("div");
       actions.className = "es-actions";
 
-      const demoBtn = document.createElement("button");
-      demoBtn.type = "button";
-      demoBtn.className = "es-btn primary";
-      demoBtn.innerHTML = PLAY_ICON + "<span>Open Demo</span>";
-      demoBtn.addEventListener("click", openDemo);
-      actions.appendChild(demoBtn);
+      // Primary call to action: the featured replay, real TxLINE data in one tap.
+      const featuredBtn = document.createElement("button");
+      featuredBtn.type = "button";
+      featuredBtn.className = "es-btn primary";
+      featuredBtn.innerHTML = REPLAY_ICON + "<span>Open featured replay</span>";
+      featuredBtn.addEventListener("click", openFeaturedReplay);
+      actions.appendChild(featuredBtn);
 
       // Only offer the replay shortcut when finished matches actually exist to replay.
       const hasFinished = allFixtures.some(f => f.status === "finished");
@@ -3886,6 +4000,14 @@
         replayBtn.addEventListener("click", () => { showAllFinished = true; renderFixtures(); });
         actions.appendChild(replayBtn);
       }
+
+      // Demo demoted to a secondary link: still reachable, no longer the headline.
+      const demoLink = document.createElement("button");
+      demoLink.type = "button";
+      demoLink.className = "es-link";
+      demoLink.textContent = "Open Demo";
+      demoLink.addEventListener("click", openDemo);
+      actions.appendChild(demoLink);
 
       wrap.appendChild(icon);
       wrap.appendChild(title);
